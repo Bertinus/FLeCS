@@ -1,0 +1,31 @@
+site_name: FLeCS
+site_url: https://bertinus.github.io
+
+nav:
+  - Home: index.md
+  - Gene Regulatory Networks: grn.md
+  - Structural Equations: structural_equation.md
+  - Cell: cell.md
+  - Trajectories: trajectory.md
+  - Mutations: mutation.md
+  - Interventions: intervention.md
+  - Parameters: parameter.md
+  - Utils: utils.md
+
+theme:
+  name: "material"
+#theme: readthedocs
+
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings
+
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
