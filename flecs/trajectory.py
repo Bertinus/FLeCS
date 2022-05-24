@@ -8,11 +8,17 @@ def simulate_deterministic_trajectory_euler_steps(
     cell: Cell, time_range: torch.Tensor
 ) -> torch.Tensor:
     """
-    Simulates the deterministic trajectory of the cell using Euler's method.
+    Simulates the deterministic trajectory of the cell using Euler's method:
+    $$
+    \operatorname{state}(t + \Delta t) = \operatorname{state}(t) + {d \operatorname{state} \over dt} \Delta t.
+    $$
 
-    :param cell: flecs.cell.Cell object
-    :param time_range: 1D torch.Tensor containing the time points at which the cell state should be evaluated.
-    :return: Trajectory of shape (n_time_points, n_cells, n_nodes, *state_dim)
+    Args:
+        cell (Cell): Cell.
+        time_range (1D torch.Tensor): Time points at which the cell state should be evaluated.
+
+    Returns:
+        torch.Tensor: Trajectory of shape (n_time_points, n_cells, n_nodes, *state_dim)
     """
 
     # Store cell state at each time step
@@ -31,18 +37,21 @@ def simulate_deterministic_trajectory(
     cell: Cell, time_range: torch.Tensor, method="dopri5"
 ) -> torch.Tensor:
     """
-    Simulates the deterministic trajectory of the cell using the torchdiffeq solver.
+    Simulates the deterministic trajectory of the cell using the ``torchdiffeq`` solver.
 
-    :param cell: flecs.cell.Cell object
-    :param time_range: 1D torch.Tensor containing the time points at which the cell state should be evaluated.
-    :param method: argument for the solver
-    :return: Trajectory of shape (n_time_points, n_cells, n_nodes, *state_dim)
+    Args:
+        cell (Cell): Cell.
+        time_range (1D torch.Tensor): Time points at which the cell state should be evaluated.
+        method (str): argument for the solver.
+
+    Returns:
+        torch.Tensor: Trajectory of shape (n_time_points, n_cells, n_nodes, *state_dim)
     """
     from torchdiffeq import odeint
 
     def derivatives_for_solver(_, state):
         """
-        Utility method for compatibility with the solver
+        Utility method for compatibility with the solver.
         """
         # Get derivatives
         return cell.get_derivatives(state)
@@ -58,12 +67,20 @@ def simulate_deterministic_trajectory(
 
 def simulate_stochastic_trajectory(cell: Cell, time_range: torch.Tensor):
     """
-    Simulates the deterministic trajectory of the cell using the tau-leaping method, which is a variation of
-    the Gillespie algorithm.
+    Simulates stochastic trajectories of the cell using the tau-leaping method, which is a variation of
+    the Gillespie algorithm:
+    $$
+    \operatorname{state}(t + \Delta t) = \operatorname{state}(t)
+    + \operatorname{Pois}[\Delta t \cdot (\operatorname{production rates})]
+    - \operatorname{Pois}[\Delta t \cdot (\operatorname{decay rates})].
+    $$
 
-    :param cell: flecs.cell.Cell object
-    :param time_range: 1D torch.Tensor containing the time points at which the cell state should be evaluated.
-    :return: Trajectory of shape (n_time_points, n_cells, n_nodes, *state_dim)
+    Args:
+        cell (Cell): Cell.
+        time_range (1D torch.Tensor): Time points at which the cell state should be evaluated.
+
+    Returns:
+        torch.Tensor: Trajectory of shape (n_time_points, n_cells, n_nodes, *state_dim)
     """
     # Store cell state at each time step
     trajectory = [copy.deepcopy(cell.state[None, :, :])]

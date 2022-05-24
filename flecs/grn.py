@@ -14,13 +14,19 @@ from typing import List
 
 class GRN(nx.DiGraph, ABC):
     """
-    Class which represents the Gene Regulatory Network (GRN) of the Cell.
+    Abstract class representing the Gene Regulatory Network (GRN) of the Cell.
+
+    It inherits from the ``networkx.DiGraph`` class. Nodes typically represent genes, and edges typically represent a
+    regulation relationship between a regulator gene (or transcription factor, TF) and a regulated gene.
     """
 
     def __init__(self, **kwargs):
         """
-        Initialize the GRN and make sure that the object contains a 'is_TF' node attribute, which indicates the nodes
+        Initializes the GRN and makes sure that the object contains a 'is_TF' node attribute, which indicates the nodes
         that are transcription factors.
+
+        Args:
+            **kwargs: keyword arguments passed to the method ``self.load_grn``.
         """
         _graph = self.load_grn(**kwargs)
         super().__init__(_graph)
@@ -30,34 +36,73 @@ class GRN(nx.DiGraph, ABC):
     @abstractmethod
     def load_grn(cls, **kwargs) -> nx.DiGraph:
         """
-        Method used to load the Gene Regulatory Network as a nx.DiGraph object. Either from a database,
-        or from a random initializer.
+        Abstract method used to load the Gene Regulatory Network as a ``networkx.DiGraph`` object.
+        Either from a database, or from a random initializer.
+
+        Returns:
+            networkx.DiGraph: Graph from which the GRN is initialized.
         """
 
     @property
     def n_nodes(self) -> int:
+        """
+        (``int``) Number of nodes.
+        """
         return self.number_of_nodes()
 
     @property
     def n_edges(self) -> int:
+        """
+        (``int``) Number of edges.
+        """
         return self.number_of_edges()
 
     @property
     def tedges(self) -> torch.Tensor:
         """
-        Edges in the GRN as a torch Tensor.
-
-        :return: torch Tensor of shape (n_edges, 2)
+        (``torch.Tensor``) Edges in the GRN. Shape (n_edges, 2).
         """
         return torch.tensor(list(self.edges()))
 
     def get_node_attr(self, attr_name: str) -> torch.Tensor:
+        """
+        Gets the values of the attribute ``attr_name`` from all nodes, and returns it as a single torch.Tensor.
+
+        Args:
+            attr_name (str): Name of the node attribute.
+
+        Returns:
+            torch.Tensor: Tensor corresponding to the ``attr_name`` attribute.
+                Shape (n_cells, n_nodes, *attr_dim).
+
+        """
         return self.get_attr(attr_name, "node")
 
     def get_edge_attr(self, attr_name: str) -> torch.Tensor:
+        """
+        Gets the values of the attribute ``attr_name`` from all edges, and returns it as a single torch.Tensor.
+
+        Args:
+            attr_name (str): Name of the edge attribute.
+
+        Returns:
+            torch.Tensor: Tensor corresponding to the ``attr_name`` attribute.
+                Shape (n_cells, n_edges, *attr_dim).
+
+        """
         return self.get_attr(attr_name, "edge")
 
     def get_attr(self, attr_name: str, attr_type: str) -> torch.Tensor:
+        """
+
+        Args:
+            attr_name (str): Name of the attribute.
+            attr_type (str): either "node" or "edge".
+
+        Returns:
+            torch.Tensor: Tensor corresponding to the ``attr_name`` attribute.
+
+        """
         assert attr_type in ["node", "edge"]
 
         attr_list = (
@@ -82,6 +127,14 @@ class GRN(nx.DiGraph, ABC):
         return attr
 
     def set_node_attr(self, attr_name: str, attr_values: torch.Tensor) -> None:
+        """
+        Sets the values of the attribute ``attr_name`` for all nodes.
+
+        Args:
+            attr_name (str): Name of the node attribute.
+            attr_values (torch.Tensor): Values for the node attribute. Shape (n_cells, n_nodes, *attr_dim).
+
+        """
         assert type(attr_values) is torch.Tensor
         assert len(attr_values.shape) >= 3
         assert attr_values.shape[1] == self.n_nodes
@@ -93,6 +146,14 @@ class GRN(nx.DiGraph, ABC):
         )
 
     def set_edge_attr(self, attr_name: str, attr_values: torch.Tensor) -> None:
+        """
+        Sets the values of the attribute ``attr_name`` for all edges.
+
+        Args:
+            attr_name (str): Name of the edge attribute.
+            attr_values (torch.Tensor): Values for the edge attribute. Shape (n_cells, n_edges, *attr_dim).
+
+        """
         assert type(attr_values) is torch.Tensor
         assert len(attr_values.shape) >= 3
         assert attr_values.shape[1] == self.n_edges
@@ -103,6 +164,9 @@ class GRN(nx.DiGraph, ABC):
 
     @property
     def state(self) -> torch.Tensor:
+        """
+        (``torch.Tensor``) State stored as a node attribute.
+        """
         return self.get_node_attr("state")
 
     @state.setter
@@ -112,8 +176,11 @@ class GRN(nx.DiGraph, ABC):
     @property
     def tf_indices(self) -> List[int]:
         """
-        List of the indices of the nodes which are transcription factors
-        :return: List of integers containing the node indices
+        Method returning the list of the indices of the nodes which are transcription factors (TFs).
+
+        Returns:
+             List[int]: List of the indices of the nodes which are transcription factors.
+
         """
         tf_idx = list(np.where(self.get_node_attr("is_TF"))[0])
 
@@ -123,10 +190,16 @@ class GRN(nx.DiGraph, ABC):
 
     @property
     def edge_attr_name_list(self) -> List[str]:
+        """
+        (``List[str]``) List containing the names of the edge attributes.
+        """
         return list(list(self.edges(data=True))[0][-1].keys())
 
     @property
     def node_attr_name_list(self) -> List[str]:
+        """
+        (``List[str]``) List containing the names of the node attributes.
+        """
         return list(list(self.nodes(data=True))[0][-1].keys())
 
     def __str__(self):
@@ -141,6 +214,9 @@ class GRN(nx.DiGraph, ABC):
         return string
 
     def draw(self):
+        """
+        Method to draw the GRN, using the circular layout.
+        """
         pos = nx.circular_layout(self)
 
         nx.draw_networkx_nodes(
@@ -155,6 +231,9 @@ class GRN(nx.DiGraph, ABC):
         plt.axis("off")
 
     def draw_with_spring_layout(self):
+        """
+        Method to draw the GRN, using the spring layout.
+        """
         pos = nx.spring_layout(self)
         nx.draw(
             self,
@@ -172,14 +251,19 @@ class GRN(nx.DiGraph, ABC):
 
 class RandomGRN(GRN):
     """
-    Gene Regulatory Network initialized at random
+    Class implementing a Gene Regulatory Network (GRN) initialized at random. It inherits from the ``GRN`` class.
+
+    The elements of the adjacency matrix are sampled independently at random in {0, 1}, given the number of nodes, and
+    the average number of parents per node. The resulting graph can contain cycles and self loops. In addition, the
+    initializer makes sure that each node has at least one parent.
     """
 
     def __init__(self, n_nodes: int, av_num_parents: float):
         """
 
-        :param n_nodes: Number of nodes.
-        :param av_num_parents: Average number of parents per node.
+        Args:
+            n_nodes (int): Number of nodes.
+            av_num_parents (float): Average number of parents per node.
         """
         assert n_nodes > 0
         assert av_num_parents >= 0
@@ -188,6 +272,16 @@ class RandomGRN(GRN):
 
     @classmethod
     def load_grn(cls, n_nodes, av_num_parents) -> nx.DiGraph:
+        """
+        Generates a random graph as a ``networkx.DiGraph`` object.
+
+        Args:
+            n_nodes (int): Desired number of nodes in the graph.
+            av_num_parents (float): Average number of parents per node.
+
+        Returns:
+            networkx.DiGraph: Random graph.
+        """
         adj_mat = cls.get_random_adjacency_mat(n_nodes, av_num_parents)
 
         nx_graph = nx.from_numpy_array(adj_mat, create_using=nx.DiGraph)
@@ -207,14 +301,15 @@ class RandomGRN(GRN):
     @classmethod
     def get_random_adjacency_mat(cls, n_nodes: int, av_num_parents: float) -> np.array:
         """
-        Returns a random adjacency matrix of size (n_nodes, n_nodes) where each node has on average
-            'av_num_parents' parents. Moreover, we make sure that each node has at least one parent
+        Generates a random adjacency matrix. Each node has on average ``av_num_parents`` parents.
+        Moreover, each node has at least one parent.
 
-        Note that the resulting graph may not be acyclic, and self loops are allowed.
+        Args:
+            n_nodes (int): Number of nodes.
+            av_num_parents (float): Average number of parents per node.
 
-        :param n_nodes: Number of nodes
-        :param av_num_parents: Average number of parents for each node
-        :return: Numpy array of shape (n_nodes, n_nodes)
+        Returns:
+            numpy.array: Adjacency matrix. Shape (n_nodes, n_nodes).
         """
         adj_mat = np.random.choice(
             [0, 1],

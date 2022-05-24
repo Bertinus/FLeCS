@@ -11,10 +11,21 @@ from torch.distributions.bernoulli import Bernoulli
 
 class Mutation(ABC):
     """
-    Class responsible for applying mutations to Cells
+    Abstract class responsible for applying mutations to cells.
     """
 
     def duplicate_and_mutate_attribute(self, cell: Cell, attr_name: str):
+        """
+        Duplicates and mutates the attribute ``attr_name``.
+
+        The attribute is duplicated so that its first dimension matches ``cell.n_cells``. After that, it is mutated to
+        induce variations between cells.
+
+        Args:
+            cell (Cell): Cell.
+            attr_name (str): Name of the attribute.
+
+        """
         n_cells = cell.n_cells
         self._duplicate_attribute(cell, attr_name, n_cells)
         self._mutate_attribute(cell, attr_name)
@@ -22,6 +33,15 @@ class Mutation(ABC):
 
     @staticmethod
     def _duplicate_attribute(cell: Cell, attr_name: str, n_cells: int):
+        """
+        Duplicates the attribute ``attr_name``. It assumes that the attribute has not yet been duplicated, i.e.
+        ``attr.tensor.shape[0] == 1``.
+
+        Args:
+            cell (Cell): Cell.
+            attr_name (str): Name of the attribute.
+            n_cells: Number of cells.
+        """
         tensor = cell.get_parameter(attr_name).tensor
 
         if tensor.shape[0] != 1:
@@ -34,7 +54,11 @@ class Mutation(ABC):
     @abstractmethod
     def _mutate_attribute(self, cell: Cell, attr_name: str):
         """
-        Method which applies mutations to a given attribute
+        Mutates the attribute ``attr_name``.
+
+        Args:
+            cell (Cell): Cell.
+            attr_name (str): Name of the attribute.
         """
 
 
@@ -44,24 +68,56 @@ class Mutation(ABC):
 
 
 class GaussianMutation(Mutation):
+    """
+    Class to apply mutations in the form of Gaussian noise.
+
+    Attributes:
+        noise_dist (torch.distributions.normal.Normal): Normal distribution to sample noise.
+    """
+
     def __init__(self, sigma: float):
+        """
+        Args:
+            sigma: standard deviation of the Gaussian noise to be applied.
+        """
         self.noise_dist = Normal(0, sigma)
 
     def _mutate_attribute(self, cell: Cell, attr_name: str):
+        """
+        Mutates the attribute ``attr_name``.
+
+        Args:
+            cell (Cell): Cell.
+            attr_name (str): Name of the attribute.
+        """
         attr = cell.get_parameter(attr_name)
 
         attr.tensor += self.noise_dist.sample(attr.tensor.shape)
 
 
 class BernoulliMutation(Mutation):
+    """
+    Class to apply mutations wherein each parametric element is set to zero with a probability ``p``.
+
+    Attributes:
+        noise_dist (torch.distributions.bernoulli.Bernoulli): Bernoulli distribution to sample noise.
+    """
+
     def __init__(self, p: float):
         """
-
-        :param p: probability of being set to zero
+        Args:
+            p (float): probability of being set to zero
         """
         self.noise_dist = Bernoulli(1 - p)
 
     def _mutate_attribute(self, cell: Cell, attr_name: str):
+        """
+        Mutates the attribute ``attr_name``.
+
+        Args:
+            cell (Cell): Cell.
+            attr_name (str): Name of the attribute.
+        """
         attr = cell.get_parameter(attr_name)
 
         attr.tensor *= self.noise_dist.sample(attr.tensor.shape)

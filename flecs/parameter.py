@@ -12,7 +12,15 @@ from typing import Tuple
 
 class Parameter(ABC):
     """
-    Class representing a parameter.
+    Abstract class representing a parameter of the cell. It can correspond to either a node or an edge parameter.
+
+    Attributes:
+        dim (Tuple[int, ...]): Dimension of the parameter. In the case of a node parameter,
+            each node will be associated with a torch.Tensor of shape (n_cells, *dim).
+        prior_dist (torch.distributions.distribution.Distribution): Prior distribution of the parameter. Can be used
+            to initialize or re-sample the parameter.
+        tensor (torch.Tensor): Values of the parameter. Shape (n_cells, length, *dim). Length is typically the number
+            of nodes or edges.
     """
 
     def __init__(
@@ -22,12 +30,13 @@ class Parameter(ABC):
         tensor: torch.Tensor = None,
     ):
         """
-
-        :param dim: Dimension of the parameter.
-        :param prior_dist: Prior distribution of the parameter. Can be used to initialize or re-sample the parameter.
-        Typically a torch.distribution object.
-        :param tensor: torch Tensor containing the values of the parameter. Shape (n_cells, length, *dim).
-        Length would typically be the number of nodes or edges in the GRN.
+        Args:
+            dim (Tuple[int, ...]): Dimension of the parameter. In the case of a node parameter,
+                each node will be associated with a torch.Tensor of shape (n_cells, *dim).
+            prior_dist (torch.distributions.distribution.Distribution, optional): Prior distribution of the parameter.
+                Can be used to initialize or re-sample the parameter. Default is None
+            tensor (torch.Tensor, optional): Values of the parameter. Shape (n_cells, length, *dim). Length is
+                typically the number of nodes or edges. Default is None.
         """
 
         self.dim = dim
@@ -40,6 +49,9 @@ class Parameter(ABC):
 
     @property
     def n_cells(self):
+        """
+        (``int``) Second dimension of ``self.tensor``. Typically the number of cells.
+        """
         return self.tensor.shape[0]
 
     @property
@@ -55,7 +67,13 @@ class Parameter(ABC):
             )
         self._tensor = t
 
-    def initialize_from_prior_dist(self, length):
+    def initialize_from_prior_dist(self, length: int):
+        """
+        Initializes the values of the ``self.tensor`` based on the prior distribution ``self.prior_dist``
+
+        Args:
+            length (int): Second dimension for ``self.tensor``. Typically the number of nodes or the number of edges.
+        """
         if self.prior_dist is None:
             raise RuntimeError(
                 "The parameter's prior distribution prior_dist is not defined."

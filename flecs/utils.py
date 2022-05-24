@@ -4,11 +4,22 @@ from pathlib import Path
 import torch
 
 
-def get_project_root():
+def get_project_root() -> str:
+    """
+    Returns:
+        str: Path to the root of the project.
+
+    """
     return Path(__file__).parent.parent
 
 
 def set_seed(k):
+    """
+    Sets the numpy and torch seeds.
+
+    Args:
+        k: seed.
+    """
     np.random.seed(k)
     torch.random.manual_seed(k)
 
@@ -18,13 +29,19 @@ def set_seed(k):
 ########################################################################################################################
 
 
-def plot_trajectory(trajectory, timepoints=None, legend=True):
+def plot_trajectory(trajectory, time_points=None, legend=True):
     """
-    Creates a plot showing the time evolution of genes
+    Function to plot the time evolution of the state of a cell.
 
-    :param trajectory: torch tensor or numpy array of shape (n_time_points, n_genes, n_cells)
-    :param timepoints: list or 1D numpy array containing the times of the observations
-    :param legend: Boolean. Whether to add a legend to the plot
+    Args:
+        trajectory (torch.Tensor): States of the cell observed at the different time points.
+            Shape (n_time_points, n_cells, n_genes).
+        time_points (list or 1D numpy.array): Times of the observations.
+        legend (bool): Whether to add a legend to the plot.
+
+    Raises:
+        RuntimeWarning: If the trajectory contains more than one cell. Only the trajectory of the first cell is plotted.
+
     """
     if trajectory.shape[1] != 1:
         raise RuntimeWarning(
@@ -34,8 +51,8 @@ def plot_trajectory(trajectory, timepoints=None, legend=True):
         )
 
     for gene in range(trajectory.shape[2]):
-        if timepoints is not None:
-            plt.plot(timepoints, trajectory[:, 0, gene], label="gene " + str(gene))
+        if time_points is not None:
+            plt.plot(time_points, trajectory[:, 0, gene], label="gene " + str(gene))
         else:
             plt.plot(trajectory[:, 0, gene], label="gene " + str(gene))
     plt.xlabel("time")
