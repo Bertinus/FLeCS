@@ -1,7 +1,7 @@
 import torch
 
 from flecs.grn import GRN
-from flecs.parameter import EdgeParameter, NodeParameter
+from flecs.parameter import EdgeParameter, GeneParameter
 from flecs.structural_equation import StructuralEquation
 
 
@@ -16,7 +16,7 @@ class Cell:
         from flecs.grn import RandomGRN
         from flecs.structural_equation import SigmoidLinearSE
 
-        grn = RandomGRN(n_nodes=10, av_num_parents=3)
+        grn = RandomGRN(n_genes=10, av_num_parents=3)
         linear_se = SigmoidLinearSE()
 
         my_cell = Cell(grn=grn, structural_equation=linear_se)
@@ -31,20 +31,20 @@ class Cell:
         self.grn = grn
         self.structural_equation = structural_equation
         self.structural_equation.initialize_given_structure(
-            self.grn.n_nodes, self.grn.tedges
+            self.grn.n_genes, self.grn.tedges
         )
         """
         Args:
             grn (GRN): Gene Regulatory Network of the cell
             structural_equation (StructuralEquation): Structural Equation of the cell
         """
-        self._state = torch.zeros((0, self.grn.n_nodes, 1))
+        self._state = torch.zeros((0, self.grn.n_genes, 1))
 
         self.sync_grn_from_se()
 
     @property
     def state(self):
-        """(``torch.Tensor``): State of the cell. Shape (n_cells, n_nodes, *state_dim)"""
+        """(``torch.Tensor``): State of the cell. Shape (n_cells, n_genes, *state_dim)"""
         return self._state
 
     @property
@@ -53,9 +53,9 @@ class Cell:
         return self._state.shape[0]
 
     @property
-    def n_nodes(self):
-        """(``int``) Number of nodes."""
-        return self.structural_equation.n_nodes
+    def n_genes(self):
+        """(``int``) Number of genes."""
+        return self.structural_equation.n_genes
 
     @property
     def n_edges(self):
@@ -77,10 +77,10 @@ class Cell:
         Returns the time derivative of the state, as computed by ``self.structural_equation``.
 
         Args:
-            state (torch.Tensor): State of the cell. Shape (n_cells, n_nodes, *state_dim)
+            state (torch.Tensor): State of the cell. Shape (n_cells, n_genes, *state_dim)
 
         Returns:
-            torch.Tensor: Time derivative of the state. Shape (n_cells, n_nodes, *state_dim).
+            torch.Tensor: Time derivative of the state. Shape (n_cells, n_genes, *state_dim).
 
         """
         return self.structural_equation.get_derivatives(state)
@@ -90,10 +90,10 @@ class Cell:
         Returns the production rates, as computed by ``self.structural_equation``.
 
         Args:
-            state (torch.Tensor): State of the cell. Shape (n_cells, n_nodes, *state_dim)
+            state (torch.Tensor): State of the cell. Shape (n_cells, n_genes, *state_dim)
 
         Returns:
-            torch.Tensor: Production rates. Shape (n_cells, n_nodes, *state_dim)
+            torch.Tensor: Production rates. Shape (n_cells, n_genes, *state_dim)
 
         """
         return self.structural_equation.get_production_rates(state)
@@ -103,26 +103,26 @@ class Cell:
         Returns the decay rates, as computed by ``self.structural_equation``.
 
         Args:
-            state (torch.Tensor): State of the cell. Shape (n_cells, n_nodes, *state_dim)
+            state (torch.Tensor): State of the cell. Shape (n_cells, n_genes, *state_dim)
 
         Returns:
-            torch.Tensor: Decay rates. Shape (n_cells, n_nodes, *state_dim)
+            torch.Tensor: Decay rates. Shape (n_cells, n_genes, *state_dim)
 
         """
         return self.structural_equation.get_decay_rates(state)
 
-    def get_node_parameter(self, param_name) -> NodeParameter:
+    def get_gene_parameter(self, param_name) -> GeneParameter:
         """
-        Gets the node parameter ``parameter_name``.
+        Gets the gene parameter ``parameter_name``.
 
         Args:
             param_name (str): Name of the parameter.
 
         Returns:
-            NodeParameter: Parameter.
+            GeneParameter: Parameter.
 
         """
-        return self.structural_equation.node_parameter_dict[param_name]
+        return self.structural_equation.gene_parameter_dict[param_name]
 
     def get_edge_parameter(self, param_name):
         """
@@ -152,16 +152,16 @@ class Cell:
 
     def sync_grn_from_se(self) -> None:
         """
-        Updates the values of the node and edge attributes of the GRN based on the values of the node and edge
+        Updates the values of the gene and edge attributes of the GRN based on the values of the gene and edge
         parameters contained in the structural equation.
 
-        If necessary, the relevant node and edge attributes are added to the GRN.
+        If necessary, the relevant gene and edge attributes are added to the GRN.
         """
-        for param_name in self.structural_equation.node_parameter_dict:
-            param_tensor = self.structural_equation.node_parameter_dict[
+        for param_name in self.structural_equation.gene_parameter_dict:
+            param_tensor = self.structural_equation.gene_parameter_dict[
                 param_name
             ].tensor
-            self.grn.set_node_attr(param_name, param_tensor)
+            self.grn.set_gene_attr(param_name, param_tensor)
 
         for param_name in self.structural_equation.edge_parameter_dict:
             param_tensor = self.structural_equation.edge_parameter_dict[
@@ -171,33 +171,33 @@ class Cell:
 
     def sync_se_from_grn(self) -> None:
         """
-        Updates the values of the node and edge parameters contained in the structural equation based on the node and
+        Updates the values of the gene and edge parameters contained in the structural equation based on the gene and
         edge attributes of the GRN.
 
-        If necessary, the relevant node and edge parameters are added to the structural equation.
+        If necessary, the relevant gene and edge parameters are added to the structural equation.
         """
-        self.sync_se_from_grn_nodes()
+        self.sync_se_from_grn_genes()
         self.sync_se_from_grn_edges()
 
-    def sync_se_from_grn_nodes(self) -> None:
+    def sync_se_from_grn_genes(self) -> None:
         """
-        Updates the values of the node parameters contained in the structural equation based on the node attributes of
+        Updates the values of the gene parameters contained in the structural equation based on the gene attributes of
         the GRN.
 
-        If necessary, the relevant node parameters are added to the structural equation.
+        If necessary, the relevant gene parameters are added to the structural equation.
         """
-        for param_name in self.grn.node_attr_name_list:
-            param_tensor = self.grn.get_node_attr(param_name)
+        for param_name in self.grn.gene_attr_name_list:
+            param_tensor = self.grn.get_gene_attr(param_name)
 
-            if param_name in self.structural_equation.node_parameter_dict:
-                self.structural_equation.node_parameter_dict[
+            if param_name in self.structural_equation.gene_parameter_dict:
+                self.structural_equation.gene_parameter_dict[
                     param_name
                 ].tensor = param_tensor
             else:
-                new_node_parameter = NodeParameter(dim=param_tensor.shape[2:])
-                new_node_parameter.tensor = param_tensor
+                new_gene_parameter = GeneParameter(dim=param_tensor.shape[2:])
+                new_gene_parameter.tensor = param_tensor
 
-                self.structural_equation.set_parameter(param_name, new_node_parameter)
+                self.structural_equation.set_parameter(param_name, new_gene_parameter)
 
     def sync_se_from_grn_edges(self) -> None:
         """

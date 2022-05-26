@@ -1,9 +1,5 @@
 # FLeCS
 
-<!---
-![flecs_logo](docs/flecs_logo.png "Logo")
--->
-
 Flexible and Learnable Cell Simulator
 
 ## Documentation

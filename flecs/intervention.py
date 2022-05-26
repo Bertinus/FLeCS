@@ -36,40 +36,40 @@ class KnockoutIntervention(Intervention):
     """
     Class to perform Knockout interventions on cells.
 
-    A knockout on node ``k`` is simulated by removing all outgoing edges of node ``k``. This corresponds to a
+    A knockout on gene ``k`` is simulated by removing all outgoing edges of gene ``k``. This corresponds to a
     complete loss of function of the protein coded by gene ``k``.
 
     One can perform knockouts on several genes.
 
     Attributes:
-        intervened_nodes (Dict[int, list]): Dictionary whose keys correspond to the nodes that have been knocked out.
-            ``intervened_nodes[k]`` contains the list of edges, as well as their attributes, that have been removed from
-            the cell because of the knockout of node ``k``.
+        intervened_genes (Dict[int, list]): Dictionary whose keys correspond to the genes that have been knocked out.
+            ``intervened_genes[k]`` contains the list of edges, as well as their attributes, that have been removed from
+            the cell because of the knockout of gene ``k``.
     """
 
     def __init__(self):
-        self.intervened_nodes: Dict[int, list] = {}
+        self.intervened_genes: Dict[int, list] = {}
 
-    def intervene(self, cell: Cell, node: int):
+    def intervene(self, cell: Cell, gene: int):
         """
-        Performs a knockout intervention on the cell by removing all outgoing edges of node ``node``.
+        Performs a knockout intervention on the cell by removing all outgoing edges of gene ``gene``.
 
         Args:
             cell (Cell): Cell to intervene on.
-            node (int): Index of the node on which the knockout is performed.
+            gene (int): Index of the gene on which the knockout is performed.
         """
-        if node in self.intervened_nodes:
-            raise ValueError("Node {} has already been knocked out".format(node))
+        if gene in self.intervened_genes:
+            raise ValueError("Gene {} has already been knocked out".format(gene))
 
         # Make sure the GRN is synchronized
         cell.sync_grn_from_se()
 
         # Save outgoing edges
-        self.intervened_nodes[node] = copy.deepcopy(
-            list(cell.grn.out_edges(node, data=True))
+        self.intervened_genes[gene] = copy.deepcopy(
+            list(cell.grn.out_edges(gene, data=True))
         )
         # Truncate the graph
-        cell.grn.remove_edges_from(self.intervened_nodes[node])
+        cell.grn.remove_edges_from(self.intervened_genes[gene])
 
         # We need to synchronize the structural equation to the intervened graph
         cell.sync_se_from_grn()
@@ -85,10 +85,10 @@ class KnockoutIntervention(Intervention):
         cell.sync_grn_from_se()
 
         # Recover original graph if the graph has been intervened
-        for node in self.intervened_nodes:
-            cell.grn.add_edges_from(self.intervened_nodes[node])
+        for gene in self.intervened_genes:
+            cell.grn.add_edges_from(self.intervened_genes[gene])
 
-        self.intervened_nodes = {}
+        self.intervened_genes = {}
 
         # We need to synchronize the structural equation to the graph
         cell.sync_se_from_grn()
@@ -109,7 +109,7 @@ class DrugLinearIntervention(Intervention):
 
     Attributes:
         sum_of_direct_effects (torch.Tensor, optional): Sum of the direct effects of the drugs that have been applied.
-            Shape (n_nodes).
+            Shape (n_genes).
     """
 
     def __init__(self):
@@ -121,16 +121,16 @@ class DrugLinearIntervention(Intervention):
 
         Args:
             cell (Cell): Cell to intervene on.
-            drug_direct_effects (torch.Tensor): Direct effects of the drug on the genes. Shape (n_nodes).
+            drug_direct_effects (torch.Tensor): Direct effects of the drug on the genes. Shape (n_genes).
         """
 
         assert len(drug_direct_effects.shape) == 1
-        assert drug_direct_effects.shape[0] == cell.n_nodes
+        assert drug_direct_effects.shape[0] == cell.n_genes
 
         if self.sum_of_direct_effects is None:
             self.sum_of_direct_effects = drug_direct_effects
         else:
-            assert cell.n_nodes == self.sum_of_direct_effects.shape[0]
+            assert cell.n_genes == self.sum_of_direct_effects.shape[0]
             self.sum_of_direct_effects += drug_direct_effects
 
         def get_intervened_production_rates(_self, state):

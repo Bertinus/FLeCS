@@ -6,7 +6,7 @@ import torch_scatter
 from torch.distributions.gamma import Gamma
 from torch.distributions.normal import Normal
 
-from flecs.parameter import EdgeParameter, NodeParameter, Parameter
+from flecs.parameter import EdgeParameter, GeneParameter, Parameter
 
 ########################################################################################################################
 # StructuralEquation Abstract class
@@ -19,7 +19,7 @@ class StructuralEquation(ABC):
 
     The Structural Equation is responsible for computing the production rates and decay rates of all the genes. It
     represents the Cell as a set Tensors, which can be used for efficient computation and training. Its edges and
-    number of nodes are based on the structure of a ``GRN`` object.
+    number of genes are based on the structure of a ``GRN`` object.
 
     Attributes:
         edges (torch.Tensor): Edges in the gene regulatory network of the cell. Shape (n_edges, 2)
@@ -35,10 +35,10 @@ class StructuralEquation(ABC):
         Abstract method to compute the production rates of all the genes.
 
         Args:
-            state (torch.Tensor): State of the cell. Shape (n_cells, n_nodes, *state_dim)
+            state (torch.Tensor): State of the cell. Shape (n_cells, n_genes, *state_dim)
 
         Returns:
-            torch.Tensor: Production rates. Shape (n_cells, n_nodes, *state_dim)
+            torch.Tensor: Production rates. Shape (n_cells, n_genes, *state_dim)
 
         """
 
@@ -48,10 +48,10 @@ class StructuralEquation(ABC):
         Abstract method to compute the decay rates of all the genes.
 
         Args:
-            state (torch.Tensor): State of the cell. Shape (n_cells, n_nodes, *state_dim)
+            state (torch.Tensor): State of the cell. Shape (n_cells, n_genes, *state_dim)
 
         Returns:
-            torch.Tensor: Decay rates. Shape (n_cells, n_nodes, *node_state_dim)
+            torch.Tensor: Decay rates. Shape (n_cells, n_genes, *gene_state_dim)
 
         """
 
@@ -63,10 +63,10 @@ class StructuralEquation(ABC):
         $$
 
         Args:
-            state (torch.Tensor): State of the cell. Shape (n_cells, n_nodes, *state_dim)
+            state (torch.Tensor): State of the cell. Shape (n_cells, n_genes, *state_dim)
 
         Returns:
-            torch.Tensor: Time derivative of the state. Shape (n_cells, n_nodes, *state_dim).
+            torch.Tensor: Time derivative of the state. Shape (n_cells, n_genes, *state_dim).
 
         """
         all_derivatives = self.get_production_rates(state) - self.get_decay_rates(state)
@@ -74,16 +74,16 @@ class StructuralEquation(ABC):
         return all_derivatives
 
     @property
-    def node_parameter_dict(self) -> Dict[str, NodeParameter]:
+    def gene_parameter_dict(self) -> Dict[str, GeneParameter]:
         """
         Returns:
-            Dict[str, NodeParameter]: Dictionary containing all node parameters.
+            Dict[str, GeneParameter]: Dictionary containing all gene parameters.
                 Keys are the names of the parameters.
         """
         return {
             attr_name: attr
             for attr_name, attr in self.__dict__.items()
-            if isinstance(attr, NodeParameter)
+            if isinstance(attr, GeneParameter)
         }
 
     @property
@@ -103,10 +103,10 @@ class StructuralEquation(ABC):
     def parameter_dict(self) -> Dict[str, Parameter]:
         """
         Returns:
-             Dict[str, Parameter]: Dictionary containing all (node and edge) parameters.
+             Dict[str, Parameter]: Dictionary containing all (gene and edge) parameters.
             Keys are the names of the parameters.
         """
-        return {**self.node_parameter_dict, **self.edge_parameter_dict}
+        return {**self.gene_parameter_dict, **self.edge_parameter_dict}
 
     def set_parameter(self, param_name: str, param: Parameter):
         """
@@ -119,9 +119,9 @@ class StructuralEquation(ABC):
         self.__setattr__(param_name, param)
 
     @property
-    def n_nodes(self):
+    def n_genes(self):
         """
-        (``int``) Number of nodes.
+        (``int``) Number of genes.
         """
         return int(self.edges.max()) + 1
 
@@ -158,20 +158,20 @@ class StructuralEquation(ABC):
         """
         return self.edges[:, 1]
 
-    def initialize_given_structure(self, n_nodes: int, edges: torch.Tensor):
+    def initialize_given_structure(self, n_genes: int, edges: torch.Tensor):
         """
-        Sets the ``self.edges`` attribute, and initializes, using their prior distributions, all node and edge
-        parameters based on the structure of a graph represented by its number of nodes and list of edges.
+        Sets the ``self.edges`` attribute, and initializes, using their prior distributions, all gene and edge
+        parameters based on the structure of a graph represented by its number of genes and list of edges.
 
         Args:
-            n_nodes: Number of nodes.
+            n_genes: Number of genes.
             edges (torch.Tensor): Edges. Shape (n_edges, 2).
         """
         assert edges.dtype is torch.long
         self.edges = edges
 
-        for param_name in self.node_parameter_dict:
-            self.__getattribute__(param_name).initialize_from_prior_dist(length=n_nodes)
+        for param_name in self.gene_parameter_dict:
+            self.__getattribute__(param_name).initialize_from_prior_dist(length=n_genes)
 
         for param_name in self.edge_parameter_dict:
             self.__getattribute__(param_name).initialize_from_prior_dist(
@@ -191,7 +191,7 @@ class StructuralEquation(ABC):
 
     def __repr__(self):
         se_repr = "StructuralEquation containing:\n"
-        se_repr += "Node parameters:\n{}\n".format(self.node_parameter_dict)
+        se_repr += "Gene parameters:\n{}\n".format(self.gene_parameter_dict)
         se_repr += "Edge parameters:\n{}".format(self.edge_parameter_dict)
 
         return se_repr
@@ -218,13 +218,13 @@ class SigmoidLinearSE(StructuralEquation):
 
     Attributes:
         edges (torch.Tensor): Edges in the gene regulatory network of the cell. Shape (n_edges, 2)
-        gene_decay (NodeParameter): Rate of exponential decay of the genes.
+        gene_decay (GeneParameter): Rate of exponential decay of the genes.
         weights (EdgeParameter): linear strength of regulation between genes.
     """
 
     def __init__(
         self,
-        gene_decay: NodeParameter = NodeParameter(
+        gene_decay: GeneParameter = GeneParameter(
             dim=(1,), prior_dist=Gamma(concentration=10, rate=10)
         ),
         weights: EdgeParameter = EdgeParameter(dim=(1,), prior_dist=Normal(0, 1)),
@@ -239,10 +239,10 @@ class SigmoidLinearSE(StructuralEquation):
         Computes the production rates of all the genes.
 
         Args:
-            state (torch.Tensor): State of the cell. Shape (n_cells, n_nodes, *state_dim)
+            state (torch.Tensor): State of the cell. Shape (n_cells, n_genes, *state_dim)
 
         Returns:
-            torch.Tensor: Production rates. Shape (n_cells, n_nodes, *state_dim)
+            torch.Tensor: Production rates. Shape (n_cells, n_genes, *state_dim)
 
         """
         # Compute messages
@@ -259,10 +259,10 @@ class SigmoidLinearSE(StructuralEquation):
         Computes the decay rates of all the genes.
 
         Args:
-            state (torch.Tensor): State of the cell. Shape (n_cells, n_nodes, *state_dim)
+            state (torch.Tensor): State of the cell. Shape (n_cells, n_genes, *state_dim)
 
         Returns:
-            torch.Tensor: Decay rates. Shape (n_cells, n_nodes, *node_state_dim)
+            torch.Tensor: Decay rates. Shape (n_cells, n_genes, *gene_state_dim)
 
         """
         return self.gene_decay.tensor * state

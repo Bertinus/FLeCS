@@ -11,15 +11,15 @@ from torch.distributions.distribution import Distribution
 
 class Parameter(ABC):
     """
-    Abstract class representing a parameter of the cell. It can correspond to either a node or an edge parameter.
+    Abstract class representing a parameter of the cell. It can correspond to either a gene or an edge parameter.
 
     Attributes:
-        dim (Tuple[int, ...]): Dimension of the parameter. In the case of a node parameter,
-            each node will be associated with a torch.Tensor of shape (n_cells, *dim).
+        dim (Tuple[int, ...]): Dimension of the parameter. In the case of a gene parameter,
+            each gene will be associated with a torch.Tensor of shape (n_cells, *dim).
         prior_dist (torch.distributions.distribution.Distribution): Prior distribution of the parameter. Can be used
             to initialize or re-sample the parameter.
         tensor (torch.Tensor): Values of the parameter. Shape (n_cells, length, *dim). Length is typically the number
-            of nodes or edges.
+            of genes or edges.
     """
 
     def __init__(
@@ -30,12 +30,12 @@ class Parameter(ABC):
     ):
         """
         Args:
-            dim (Tuple[int, ...]): Dimension of the parameter. In the case of a node parameter,
-                each node will be associated with a torch.Tensor of shape (n_cells, *dim).
+            dim (Tuple[int, ...]): Dimension of the parameter. In the case of a gene parameter,
+                each gene will be associated with a torch.Tensor of shape (n_cells, *dim).
             prior_dist (torch.distributions.distribution.Distribution, optional): Prior distribution of the parameter.
                 Can be used to initialize or re-sample the parameter. Default is None
             tensor (torch.Tensor, optional): Values of the parameter. Shape (n_cells, length, *dim). Length is
-                typically the number of nodes or edges. Default is None.
+                typically the number of genes or edges. Default is None.
         """
 
         self.dim = dim
@@ -71,7 +71,7 @@ class Parameter(ABC):
         Initializes the values of the ``self.tensor`` based on the prior distribution ``self.prior_dist``
 
         Args:
-            length (int): Second dimension for ``self.tensor``. Typically the number of nodes or the number of edges.
+            length (int): Second dimension for ``self.tensor``. Typically the number of genes or the number of edges.
         """
         if self.prior_dist is None:
             raise RuntimeError(
@@ -92,13 +92,13 @@ class Parameter(ABC):
 ########################################################################################################################
 
 
-class NodeParameter(Parameter):
+class GeneParameter(Parameter):
     """
-    Subclass representing a node parameter.
+    Subclass representing a gene parameter.
     """
 
     def __repr__(self):
-        return "Node" + super().__repr__()
+        return "Gene" + super().__repr__()
 
 
 class EdgeParameter(Parameter):

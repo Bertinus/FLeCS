@@ -1,6 +1,6 @@
 # Gene Regulatory Networks
 
-## GRN
+## GRN abstract class
 
 ::: flecs.grn.GRN
     rendering:

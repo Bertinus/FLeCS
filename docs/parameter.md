@@ -1,6 +1,6 @@
 # Parameter classes
 
-## Parameter
+## Parameter abstract class
 
 :::flecs.parameter.Parameter
     rendering:

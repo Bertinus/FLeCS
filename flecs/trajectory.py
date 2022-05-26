@@ -20,7 +20,7 @@ def simulate_deterministic_trajectory_euler_steps(
         time_range (1D torch.Tensor): Time points at which the cell state should be evaluated.
 
     Returns:
-        torch.Tensor: Trajectory of shape (n_time_points, n_cells, n_nodes, *state_dim)
+        torch.Tensor: Trajectory of shape (n_time_points, n_cells, n_genes, *state_dim)
     """
 
     # Store cell state at each time step
@@ -47,7 +47,7 @@ def simulate_deterministic_trajectory(
         method (str): argument for the solver.
 
     Returns:
-        torch.Tensor: Trajectory of shape (n_time_points, n_cells, n_nodes, *state_dim)
+        torch.Tensor: Trajectory of shape (n_time_points, n_cells, n_genes, *state_dim)
     """
     from torchdiffeq import odeint
 
@@ -82,7 +82,7 @@ def simulate_stochastic_trajectory(cell: Cell, time_range: torch.Tensor):
         time_range (1D torch.Tensor): Time points at which the cell state should be evaluated.
 
     Returns:
-        torch.Tensor: Trajectory of shape (n_time_points, n_cells, n_nodes, *state_dim)
+        torch.Tensor: Trajectory of shape (n_time_points, n_cells, n_genes, *state_dim)
     """
     # Store cell state at each time step
     trajectory = [copy.deepcopy(cell.state[None, :, :])]
