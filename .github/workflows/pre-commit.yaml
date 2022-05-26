@@ -3,6 +3,8 @@
 name: pre-commit
 
 on:
+  push:
+    branches-ignore: [main]
   pull_request:
     branches: [main]
 
@@ -50,4 +52,4 @@ jobs:
 
       - name: Check pre-commit
         if: steps.precommit.outcome == 'failure'
-        uses: pre-commit/action@v2.0.0
+        uses: pre-commit/action@v2.0.3
