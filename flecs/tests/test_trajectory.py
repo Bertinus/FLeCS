@@ -81,7 +81,7 @@ def test_plot_trajectory(my_cell):
     cell_traj = simulate_stochastic_trajectory(my_cell, time_range)
 
     # With timepoints
-    plot_trajectory(cell_traj, timepoints=time_range)
+    plot_trajectory(cell_traj, time_points=time_range)
 
     # Without timepoints
     plot_trajectory(cell_traj)
@@ -89,4 +89,4 @@ def test_plot_trajectory(my_cell):
     my_cell.state = 10 * torch.ones((3, 10, 1))
     cell_traj = simulate_stochastic_trajectory(my_cell, time_range)
     with pytest.raises(RuntimeWarning):
-        plot_trajectory(cell_traj, timepoints=time_range)
+        plot_trajectory(cell_traj, time_points=time_range)
