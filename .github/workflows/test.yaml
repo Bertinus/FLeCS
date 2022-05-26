@@ -30,13 +30,15 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           python -m pip install flake8 pytest torch
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          python -m pip install .
+          echo $CWD
+          pip install -e .
 
       - name: Lint with flake8
         run: |
