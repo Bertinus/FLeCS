@@ -1,17 +1,18 @@
-from flecs.trajectory import (
-    simulate_stochastic_trajectory,
-    simulate_deterministic_trajectory_euler_steps,
-    simulate_deterministic_trajectory,
-)
-from flecs.cell import Cell
-from flecs.parameter import NodeParameter, EdgeParameter
-from torch.distributions.normal import Normal
-from torch.distributions.gamma import Gamma
-from flecs.grn import RandomGRN
-from flecs.structural_equation import SigmoidLinearSE
-import torch
-from flecs.utils import plot_trajectory
 import pytest
+import torch
+from torch.distributions.gamma import Gamma
+from torch.distributions.normal import Normal
+
+from flecs.cell import Cell
+from flecs.grn import RandomGRN
+from flecs.parameter import EdgeParameter, NodeParameter
+from flecs.structural_equation import SigmoidLinearSE
+from flecs.trajectory import (
+    simulate_deterministic_trajectory,
+    simulate_deterministic_trajectory_euler_steps,
+    simulate_stochastic_trajectory,
+)
+from flecs.utils import plot_trajectory
 
 
 @pytest.fixture

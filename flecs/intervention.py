@@ -1,9 +1,10 @@
-from abc import ABC, abstractmethod
-from flecs.cell import Cell
 import copy
+from abc import ABC, abstractmethod
 from typing import Dict
+
 import torch
 
+from flecs.cell import Cell
 
 ########################################################################################################################
 # Intervention Abstract class

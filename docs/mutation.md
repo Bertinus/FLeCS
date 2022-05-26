@@ -13,7 +13,7 @@
     rendering:
       show_source: false
       heading_level: 3
-      
+
 ## Bernoulli Mutation
 
 :::flecs.mutation.BernoulliMutation

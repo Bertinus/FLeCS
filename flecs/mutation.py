@@ -1,8 +1,10 @@
-from flecs.cell import Cell
 from abc import ABC, abstractmethod
+
 import torch
-from torch.distributions.normal import Normal
 from torch.distributions.bernoulli import Bernoulli
+from torch.distributions.normal import Normal
+
+from flecs.cell import Cell
 
 ########################################################################################################################
 # Mutation Abstract class

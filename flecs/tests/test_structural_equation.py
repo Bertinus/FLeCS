@@ -1,8 +1,9 @@
-from flecs.structural_equation import SigmoidLinearSE
-from flecs.parameter import EdgeParameter, NodeParameter
-from torch.distributions.normal import Normal
 import pytest
 import torch
+from torch.distributions.normal import Normal
+
+from flecs.parameter import EdgeParameter, NodeParameter
+from flecs.structural_equation import SigmoidLinearSE
 
 
 @pytest.fixture

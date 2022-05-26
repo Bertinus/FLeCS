@@ -1,7 +1,8 @@
-from flecs.parameter import NodeParameter, EdgeParameter
-from torch.distributions.normal import Normal
 import pytest
 import torch
+from torch.distributions.normal import Normal
+
+from flecs.parameter import EdgeParameter, NodeParameter
 
 
 @pytest.fixture
