@@ -8,7 +8,7 @@ from torch.distributions.normal import Normal
 from flecs.cell import Cell
 from flecs.grn import RandomGRN
 from flecs.intervention import DrugLinearIntervention, KnockoutIntervention
-from flecs.parameter import EdgeParameter, NodeParameter
+from flecs.parameter import EdgeParameter, GeneParameter
 from flecs.structural_equation import SigmoidLinearSE
 
 
@@ -16,7 +16,7 @@ from flecs.structural_equation import SigmoidLinearSE
 def my_cell():
     grn = RandomGRN(10, 3)
     linear_se = SigmoidLinearSE(
-        gene_decay=NodeParameter(dim=(1,), prior_dist=Gamma(10, 10)),
+        gene_decay=GeneParameter(dim=(1,), prior_dist=Gamma(10, 10)),
         weights=EdgeParameter(dim=(1,), prior_dist=Normal(1, 1)),
     )
 
@@ -31,12 +31,12 @@ def test_ko_intervention(my_cell):
     my_ko_intervention = KnockoutIntervention()
     edges_before_intervention = copy.deepcopy(my_cell.edges)
 
-    interv_node = int(edges_before_intervention[0, 0])
+    interv_gene = int(edges_before_intervention[0, 0])
 
-    my_ko_intervention.intervene(my_cell, interv_node)
+    my_ko_intervention.intervene(my_cell, interv_gene)
 
     expected_number_of_removed_edges = (
-        edges_before_intervention[:, 0] == interv_node
+        edges_before_intervention[:, 0] == interv_gene
     ).sum()
 
     assert (
@@ -54,14 +54,14 @@ def test_double_ko_intervention(my_cell):
     edges_before_intervention = copy.deepcopy(my_cell.edges)
 
     # First KO
-    interv_node_1 = int(edges_before_intervention[0, 0])
-    expected_number_of_removed_edges_1 = (my_cell.edges[:, 0] == interv_node_1).sum()
-    my_ko_intervention.intervene(my_cell, interv_node_1)
+    interv_gene_1 = int(edges_before_intervention[0, 0])
+    expected_number_of_removed_edges_1 = (my_cell.edges[:, 0] == interv_gene_1).sum()
+    my_ko_intervention.intervene(my_cell, interv_gene_1)
 
     # Second KO
-    interv_node_2 = int(my_cell.edges[0, 0])
-    expected_number_of_removed_edges_2 = (my_cell.edges[:, 0] == interv_node_2).sum()
-    my_ko_intervention.intervene(my_cell, interv_node_2)
+    interv_gene_2 = int(my_cell.edges[0, 0])
+    expected_number_of_removed_edges_2 = (my_cell.edges[:, 0] == interv_gene_2).sum()
+    my_ko_intervention.intervene(my_cell, interv_gene_2)
 
     assert (
         len(my_cell.edges)
@@ -80,11 +80,11 @@ def test_perform_ko_intervention_twice(my_cell):
     edges_before_intervention = copy.deepcopy(my_cell.edges)
 
     # First KO
-    interv_node_1 = int(edges_before_intervention[0, 0])
-    my_ko_intervention.intervene(my_cell, interv_node_1)
+    interv_gene_1 = int(edges_before_intervention[0, 0])
+    my_ko_intervention.intervene(my_cell, interv_gene_1)
 
     with pytest.raises(ValueError):
-        my_ko_intervention.intervene(my_cell, interv_node_1)
+        my_ko_intervention.intervene(my_cell, interv_gene_1)
 
 
 def test_perform_drug_intervention(my_cell):

@@ -2,13 +2,13 @@ import pytest
 import torch
 from torch.distributions.normal import Normal
 
-from flecs.parameter import EdgeParameter, NodeParameter
+from flecs.parameter import EdgeParameter, GeneParameter
 
 
 @pytest.fixture
 def my_parameters():
     prior_dist = Normal(0, 1)
-    return NodeParameter(dim=(1, 2), prior_dist=prior_dist), EdgeParameter(
+    return GeneParameter(dim=(1, 2), prior_dist=prior_dist), EdgeParameter(
         dim=(1, 2), prior_dist=prior_dist
     )
 
@@ -20,7 +20,7 @@ def test_print_parameter(my_parameters):
 
 def test_initialize_with_tensor():
     prior_dist = Normal(0, 1)
-    param = NodeParameter(
+    param = GeneParameter(
         dim=(1, 2), prior_dist=prior_dist, tensor=torch.ones(10, 3, 1, 2)
     )
 
@@ -30,12 +30,12 @@ def test_initialize_with_tensor():
 def test_wrong_dimensions():
     prior_dist = Normal(0, 1)
     with pytest.raises(ValueError):
-        NodeParameter(dim=(1, 2), prior_dist=prior_dist, tensor=torch.ones(10, 3, 2, 2))
+        GeneParameter(dim=(1, 2), prior_dist=prior_dist, tensor=torch.ones(10, 3, 2, 2))
 
 
 def test_sample_prior_dist():
     prior_dist = Normal(0, 1)
-    param = NodeParameter(dim=(1, 2), prior_dist=prior_dist)
+    param = GeneParameter(dim=(1, 2), prior_dist=prior_dist)
 
     param.initialize_from_prior_dist(12)
 
@@ -44,7 +44,7 @@ def test_sample_prior_dist():
 
 
 def test_prior_dist_not_defined():
-    param = NodeParameter(dim=(1, 2))
+    param = GeneParameter(dim=(1, 2))
 
     with pytest.raises(RuntimeError):
         param.initialize_from_prior_dist(12)

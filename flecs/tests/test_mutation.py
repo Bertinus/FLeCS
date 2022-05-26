@@ -6,7 +6,7 @@ from torch.distributions.normal import Normal
 from flecs.cell import Cell
 from flecs.grn import RandomGRN
 from flecs.mutation import BernoulliMutation, GaussianMutation
-from flecs.parameter import EdgeParameter, NodeParameter
+from flecs.parameter import EdgeParameter, GeneParameter
 from flecs.structural_equation import SigmoidLinearSE
 from flecs.trajectory import simulate_deterministic_trajectory
 
@@ -15,7 +15,7 @@ from flecs.trajectory import simulate_deterministic_trajectory
 def my_cell():
     grn = RandomGRN(10, 3)
     linear_se = SigmoidLinearSE(
-        gene_decay=NodeParameter(dim=(1,), prior_dist=Gamma(10, 10)),
+        gene_decay=GeneParameter(dim=(1,), prior_dist=Gamma(10, 10)),
         weights=EdgeParameter(dim=(1,), prior_dist=Normal(1, 1)),
     )
 

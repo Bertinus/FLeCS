@@ -34,7 +34,7 @@ def test_derivatives(my_cell):
 
 
 def test_get_parameters(my_cell):
-    assert my_cell.get_node_parameter("gene_decay").tensor.shape == (1, 10, 1)
+    assert my_cell.get_gene_parameter("gene_decay").tensor.shape == (1, 10, 1)
     assert my_cell.get_edge_parameter("weights").tensor.shape == (
         1,
         my_cell.grn.n_edges,
@@ -45,7 +45,7 @@ def test_get_parameters(my_cell):
 
 def test_initialization(my_cell):
     assert "weights" in my_cell.grn.edge_attr_name_list
-    assert "gene_decay" in my_cell.grn.node_attr_name_list
+    assert "gene_decay" in my_cell.grn.gene_attr_name_list
 
 
 def test_n_edges(my_cell):
@@ -57,8 +57,8 @@ def test_syn_se_from_grn(my_cell: Cell):
     my_cell.grn.set_edge_attr(
         "new_edge_attr", 3 * torch.ones((1, my_cell.grn.n_edges, 2, 2))
     )
-    my_cell.grn.set_node_attr(
-        "new_node_attr", 4 * torch.ones((1, my_cell.grn.n_nodes, 5, 5))
+    my_cell.grn.set_gene_attr(
+        "new_gene_attr", 4 * torch.ones((1, my_cell.grn.n_genes, 5, 5))
     )
 
     my_cell.sync_se_from_grn()
@@ -68,6 +68,6 @@ def test_syn_se_from_grn(my_cell: Cell):
         3 * torch.ones((1, my_cell.grn.n_edges, 2, 2)),
     )
     assert torch.equal(
-        my_cell.get_node_parameter("new_node_attr").tensor,
-        4 * torch.ones((1, my_cell.grn.n_nodes, 5, 5)),
+        my_cell.get_gene_parameter("new_gene_attr").tensor,
+        4 * torch.ones((1, my_cell.grn.n_genes, 5, 5)),
     )

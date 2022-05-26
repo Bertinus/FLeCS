@@ -2,7 +2,7 @@ import pytest
 import torch
 from torch.distributions.normal import Normal
 
-from flecs.parameter import EdgeParameter, NodeParameter
+from flecs.parameter import EdgeParameter, GeneParameter
 from flecs.structural_equation import SigmoidLinearSE
 
 
@@ -52,13 +52,13 @@ def test_parameter_dict(my_se):
     assert "gene_decay" in my_se.parameter_dict
 
     assert my_se.parameter_dict["weights"].tensor.shape == (1, my_se.n_edges, 1)
-    assert my_se.parameter_dict["gene_decay"].tensor.shape == (1, my_se.n_nodes, 1)
+    assert my_se.parameter_dict["gene_decay"].tensor.shape == (1, my_se.n_genes, 1)
 
 
 def test_set_parameter(my_se):
-    my_se.set_parameter("new_node_parameter", NodeParameter(dim=(3,)))
+    my_se.set_parameter("new_gene_parameter", GeneParameter(dim=(3,)))
 
-    assert "new_node_parameter" in my_se.parameter_dict
+    assert "new_gene_parameter" in my_se.parameter_dict
 
 
 def test_derivatives(my_se):

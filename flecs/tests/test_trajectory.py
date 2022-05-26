@@ -5,7 +5,7 @@ from torch.distributions.normal import Normal
 
 from flecs.cell import Cell
 from flecs.grn import RandomGRN
-from flecs.parameter import EdgeParameter, NodeParameter
+from flecs.parameter import EdgeParameter, GeneParameter
 from flecs.structural_equation import SigmoidLinearSE
 from flecs.trajectory import (
     simulate_deterministic_trajectory,
@@ -19,7 +19,7 @@ from flecs.utils import plot_trajectory
 def my_cell():
     grn = RandomGRN(10, 3)
     linear_se = SigmoidLinearSE(
-        gene_decay=NodeParameter(dim=(1,), prior_dist=Gamma(10, 10)),
+        gene_decay=GeneParameter(dim=(1,), prior_dist=Gamma(10, 10)),
         weights=EdgeParameter(dim=(1,), prior_dist=Normal(1, 1)),
     )
 
@@ -35,7 +35,7 @@ def test_simulate_deterministic_trajectory(my_cell):
 
     cell_traj = simulate_deterministic_trajectory(my_cell, time_range)
 
-    assert cell_traj.shape == (100, 1, my_cell.grn.n_nodes, 1)
+    assert cell_traj.shape == (100, 1, my_cell.grn.n_genes, 1)
 
     assert not torch.equal(cell_traj[0], cell_traj[-1])
 
@@ -45,7 +45,7 @@ def test_simulate_deterministic_trajectory_euler_steps(my_cell):
 
     cell_traj = simulate_deterministic_trajectory_euler_steps(my_cell, time_range)
 
-    assert cell_traj.shape == (100, 1, my_cell.grn.n_nodes, 1)
+    assert cell_traj.shape == (100, 1, my_cell.grn.n_genes, 1)
 
     assert not torch.equal(cell_traj[0], cell_traj[-1])
 
@@ -55,7 +55,7 @@ def test_simulate_stochastic_trajectory(my_cell):
 
     cell_traj = simulate_stochastic_trajectory(my_cell, time_range)
 
-    assert cell_traj.shape == (100, 1, my_cell.grn.n_nodes, 1)
+    assert cell_traj.shape == (100, 1, my_cell.grn.n_genes, 1)
 
     assert not torch.equal(cell_traj[0], cell_traj[-1])
 

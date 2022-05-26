@@ -7,44 +7,44 @@ from flecs.grn import RandomGRN
 
 @pytest.fixture
 def my_grn():
-    grn = RandomGRN(n_nodes=10, av_num_parents=3)
+    grn = RandomGRN(n_genes=10, av_num_parents=3)
     return grn
 
 
 def test_initialize_graph(my_grn):
-    assert my_grn.n_nodes == 10
+    assert my_grn.n_genes == 10
     assert isinstance(my_grn, nx.DiGraph)
 
 
-def test_all_nodes_have_at_leat_one_parent(my_grn):
+def test_all_genes_have_at_leat_one_parent(my_grn):
 
     edges = my_grn.tedges
     assert edges.shape[0] == my_grn.n_edges
 
-    assert len(torch.unique(edges[:, 1])) == my_grn.n_nodes
+    assert len(torch.unique(edges[:, 1])) == my_grn.n_genes
 
 
-def test_set_node_attr(my_grn):
+def test_set_gene_attr(my_grn):
 
-    node_attr = torch.ones((3, my_grn.n_nodes, 2, 4))
-    my_grn.set_node_attr("test_node_attr", node_attr)
+    gene_attr = torch.ones((3, my_grn.n_genes, 2, 4))
+    my_grn.set_gene_attr("test_gene_attr", gene_attr)
 
-    for node in my_grn.nodes:
+    for gene in my_grn.genes:
         print(
             torch.equal(
-                my_grn.nodes(data=True)[node]["test_node_attr"], torch.ones((3, 2, 4))
+                my_grn.genes(data=True)[gene]["test_gene_attr"], torch.ones((3, 2, 4))
             )
         )
 
 
-def test_get_node_attr(my_grn):
+def test_get_gene_attr(my_grn):
 
-    node_attr = torch.ones((3, my_grn.n_nodes, 2, 4))
-    my_grn.set_node_attr("test_node_attr", node_attr)
+    gene_attr = torch.ones((3, my_grn.n_genes, 2, 4))
+    my_grn.set_gene_attr("test_gene_attr", gene_attr)
 
-    gotten_node_attr = my_grn.get_node_attr("test_node_attr")
+    gotten_gene_attr = my_grn.get_gene_attr("test_gene_attr")
 
-    assert torch.equal(gotten_node_attr, node_attr)
+    assert torch.equal(gotten_gene_attr, gene_attr)
 
 
 def test_set_edge_attr(my_grn):
@@ -72,11 +72,11 @@ def test_get_edge_attr(my_grn):
 
 def test_get_non_existing_attr(my_grn):
     with pytest.raises(ValueError):
-        my_grn.get_node_attr("non_existing")
+        my_grn.get_gene_attr("non_existing")
 
 
 def test_state(my_grn):
-    state = torch.ones((3, my_grn.n_nodes, 2, 4))
+    state = torch.ones((3, my_grn.n_genes, 2, 4))
     my_grn.state = state
 
     assert torch.equal(my_grn.state, state)
@@ -84,7 +84,7 @@ def test_state(my_grn):
 
 def test_tf_list(my_grn):
     assert isinstance(my_grn.tf_indices[0], int)
-    assert len(my_grn.tf_indices) == my_grn.n_nodes
+    assert len(my_grn.tf_indices) == my_grn.n_genes
 
 
 def test_draw(my_grn):

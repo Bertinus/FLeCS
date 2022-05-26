@@ -53,6 +53,13 @@ class GRN(nx.DiGraph, ABC):
         return self.number_of_nodes()
 
     @property
+    def genes(self):
+        """
+        (``NodeView``) A NodeView of the Graph.
+        """
+        return self.nodes
+
+    @property
     def n_edges(self) -> int:
         """
         (``int``) Number of edges.
@@ -113,7 +120,7 @@ class GRN(nx.DiGraph, ABC):
             else self.edge_attr_name_list
         )
         get_attr_fn = (
-            nx.get_gene_attributes if attr_type == "gene" else nx.get_edge_attributes
+            nx.get_node_attributes if attr_type == "gene" else nx.get_edge_attributes
         )
 
         if attr_name not in attr_list:
@@ -141,7 +148,7 @@ class GRN(nx.DiGraph, ABC):
         assert len(attr_values.shape) >= 3
         assert attr_values.shape[1] == self.n_genes
 
-        nx.set_gene_attributes(
+        nx.set_node_attributes(
             self,
             dict(zip(range(self.n_genes), attr_values.swapaxes(0, 1))),
             name=attr_name,
@@ -221,7 +228,7 @@ class GRN(nx.DiGraph, ABC):
         """
         pos = nx.circular_layout(self)
 
-        nx.draw_networkx_genes(
+        nx.draw_networkx_nodes(
             self, pos, node_color=self.get_gene_attr("is_TF"), cmap=plt.cm.autumn
         )
 
@@ -294,7 +301,7 @@ class RandomGRN(GRN):
 
         is_tf = torch.ones((1, n_genes, 1, 1))
 
-        nx.set_gene_attributes(
+        nx.set_node_attributes(
             nx_graph, dict(zip(range(n_genes), is_tf.swapaxes(0, 1))), name="is_TF"
         )
 
