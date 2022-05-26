@@ -7,10 +7,17 @@ on:
     branches-ignore: [main]
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
 
 jobs:
   pre-commit:
     runs-on: ubuntu-latest
+    if: >-
+      !endsWith(github.event.head_commit.message, '# ci skip') &&
+      (
+        startsWith(github.ref, 'refs/heads') ||
+        github.event.pull_request.draft == false
+      )
     steps:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@0.6.0
@@ -21,7 +28,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          ref: ${{ github.head_ref }}
 
       - name: Setup python
         uses: actions/setup-python@v3
@@ -38,7 +44,7 @@ jobs:
         continue-on-error: true
 
       - name: Commit files
-        if: steps.precommit.outcome == 'failure'
+        if: steps.precommit.outcome == 'failure' && startsWith(github.ref, 'refs/heads')
         run: |
           if [[ `git status --porcelain --untracked-files=no` ]]; then
             git config --local user.email "github-actions[bot]@users.noreply.github.com"
@@ -49,7 +55,7 @@ jobs:
         shell: bash -e {0}
 
       - name: Push changes
-        if: steps.precommit.outcome == 'failure'
+        if: steps.precommit.outcome == 'failure' && startsWith(github.ref, 'refs/heads')
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
