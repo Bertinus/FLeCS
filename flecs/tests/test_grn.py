@@ -1,7 +1,8 @@
-from flecs.grn import RandomGRN
 import networkx as nx
 import pytest
 import torch
+
+from flecs.grn import RandomGRN
 
 
 @pytest.fixture

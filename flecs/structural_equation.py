@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
-import torch
 from typing import Dict
-from flecs.parameter import NodeParameter, EdgeParameter, Parameter
+
+import torch
 import torch_scatter
 from torch.distributions.gamma import Gamma
 from torch.distributions.normal import Normal
 
+from flecs.parameter import EdgeParameter, NodeParameter, Parameter
 
 ########################################################################################################################
 # StructuralEquation Abstract class

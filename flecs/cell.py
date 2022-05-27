@@ -1,7 +1,8 @@
-from flecs.grn import GRN
-from flecs.structural_equation import StructuralEquation
 import torch
-from flecs.parameter import NodeParameter, EdgeParameter
+
+from flecs.grn import GRN
+from flecs.parameter import EdgeParameter, NodeParameter
+from flecs.structural_equation import StructuralEquation
 
 
 class Cell:
@@ -43,27 +44,27 @@ class Cell:
 
     @property
     def state(self):
-        """ (``torch.Tensor``): State of the cell. Shape (n_cells, n_nodes, *state_dim) """
+        """(``torch.Tensor``): State of the cell. Shape (n_cells, n_nodes, *state_dim)"""
         return self._state
 
     @property
     def n_cells(self):
-        """ (``int``) Number of cells. """
+        """(``int``) Number of cells."""
         return self._state.shape[0]
 
     @property
     def n_nodes(self):
-        """ (``int``) Number of nodes. """
+        """(``int``) Number of nodes."""
         return self.structural_equation.n_nodes
 
     @property
     def n_edges(self):
-        """ (``int``) Number of edges. """
+        """(``int``) Number of edges."""
         return self.structural_equation.n_edges
 
     @property
     def edges(self):
-        """ (``torch.Tensor``) Edges. Shape (n_edges, 2). """
+        """(``torch.Tensor``) Edges. Shape (n_edges, 2)."""
         return self.structural_equation.edges
 
     @state.setter

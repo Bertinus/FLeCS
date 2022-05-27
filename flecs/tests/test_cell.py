@@ -1,8 +1,9 @@
+import pytest
+import torch
+
 from flecs.cell import Cell
 from flecs.grn import RandomGRN
 from flecs.structural_equation import SigmoidLinearSE
-import torch
-import pytest
 
 
 @pytest.fixture

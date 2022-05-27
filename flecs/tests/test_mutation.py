@@ -1,13 +1,14 @@
-from flecs.mutation import GaussianMutation, BernoulliMutation
-from flecs.trajectory import simulate_deterministic_trajectory
-from flecs.cell import Cell
-from flecs.parameter import NodeParameter, EdgeParameter
-from torch.distributions.normal import Normal
-from torch.distributions.gamma import Gamma
-from flecs.grn import RandomGRN
-from flecs.structural_equation import SigmoidLinearSE
-import torch
 import pytest
+import torch
+from torch.distributions.gamma import Gamma
+from torch.distributions.normal import Normal
+
+from flecs.cell import Cell
+from flecs.grn import RandomGRN
+from flecs.mutation import BernoulliMutation, GaussianMutation
+from flecs.parameter import EdgeParameter, NodeParameter
+from flecs.structural_equation import SigmoidLinearSE
+from flecs.trajectory import simulate_deterministic_trajectory
 
 
 @pytest.fixture

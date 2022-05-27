@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
-import torch
-import networkx as nx
-import numpy as np
-import matplotlib.pyplot as plt
 from typing import List
 
+import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
+import torch
 
 ########################################################################################################################
 # GRN Abstract class

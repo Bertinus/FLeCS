@@ -1,7 +1,9 @@
-from flecs.cell import Cell
-import torch
 import copy
+
+import torch
 import torch.nn.functional as F
+
+from flecs.cell import Cell
 
 
 def simulate_deterministic_trajectory_euler_steps(
