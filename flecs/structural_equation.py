@@ -119,13 +119,6 @@ class StructuralEquation(ABC):
         self.__setattr__(param_name, param)
 
     @property
-    def n_genes(self):
-        """
-        (``int``) Number of genes.
-        """
-        return int(self.edges.max()) + 1
-
-    @property
     def n_edges(self):
         """
         (``int``) Number of edges.
@@ -222,17 +215,19 @@ class SigmoidLinearSE(StructuralEquation):
         weights (EdgeParameter): linear strength of regulation between genes.
     """
 
-    def __init__(
-        self,
-        gene_decay: GeneParameter = GeneParameter(
-            dim=(1,), prior_dist=Gamma(concentration=10, rate=10)
-        ),
-        weights: EdgeParameter = EdgeParameter(dim=(1,), prior_dist=Normal(0, 1)),
-    ):
+    def __init__(self, gene_decay: GeneParameter = None, weights: EdgeParameter = None):
         super().__init__()
 
-        self.gene_decay = gene_decay
-        self.weights = weights
+        self.gene_decay = (
+            gene_decay
+            if gene_decay is not None
+            else GeneParameter(dim=(1,), prior_dist=Gamma(concentration=10, rate=10))
+        )
+        self.weights = (
+            weights
+            if weights is not None
+            else EdgeParameter(dim=(1,), prior_dist=Normal(0, 1))
+        )
 
     def get_production_rates(self, state: torch.Tensor) -> torch.Tensor:
         """
