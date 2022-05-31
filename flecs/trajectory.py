@@ -59,10 +59,9 @@ def simulate_deterministic_trajectory(
         return cell.get_derivatives(state)
 
     # Simulate trajectory
-    with torch.no_grad():
-        trajectory = odeint(
-            derivatives_for_solver, cell.state, time_range, method=method
-        )
+    trajectory = odeint(
+        derivatives_for_solver, cell.state, time_range, method=method
+    )
 
     return trajectory
 
