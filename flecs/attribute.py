@@ -5,20 +5,20 @@ import torch
 from torch.distributions.distribution import Distribution
 
 ########################################################################################################################
-# Parameter Abstract class
+# Attribute Abstract class
 ########################################################################################################################
 
 
-class Parameter(ABC):
+class Attribute(ABC):
     """
-    Abstract class representing a parameter of the cell. It can correspond to either a gene or an edge parameter.
+    Abstract class representing an attribute of the cell. It can correspond to either a gene or an edge attribute.
 
     Attributes:
-        dim (Tuple[int, ...]): Dimension of the parameter. In the case of a gene parameter,
+        dim (Tuple[int, ...]): Dimension of the attribute. In the case of a gene attribute,
             each gene will be associated with a torch.Tensor of shape (n_cells, *dim).
-        prior_dist (torch.distributions.distribution.Distribution): Prior distribution of the parameter. Can be used
-            to initialize or re-sample the parameter.
-        tensor (torch.Tensor): Values of the parameter. Shape (n_cells, length, *dim). Length is typically the number
+        prior_dist (torch.distributions.distribution.Distribution): Prior distribution of the attribute. Can be used
+            to initialize or re-sample the attribute.
+        tensor (torch.Tensor): Values of the attribute. Shape (n_cells, length, *dim). Length is typically the number
             of genes or edges.
     """
 
@@ -30,11 +30,11 @@ class Parameter(ABC):
     ):
         """
         Args:
-            dim (Tuple[int, ...]): Dimension of the parameter. In the case of a gene parameter,
+            dim (Tuple[int, ...]): Dimension of the attribute. In the case of a gene attribute,
                 each gene will be associated with a torch.Tensor of shape (n_cells, *dim).
-            prior_dist (torch.distributions.distribution.Distribution, optional): Prior distribution of the parameter.
-                Can be used to initialize or re-sample the parameter. Default is None
-            tensor (torch.Tensor, optional): Values of the parameter. Shape (n_cells, length, *dim). Length is
+            prior_dist (torch.distributions.distribution.Distribution, optional): Prior distribution of the attribute.
+                Can be used to initialize or re-sample the attribute. Default is None
+            tensor (torch.Tensor, optional): Values of the attribute. Shape (n_cells, length, *dim). Length is
                 typically the number of genes or edges. Default is None.
         """
 
@@ -62,7 +62,7 @@ class Parameter(ABC):
         if t.shape[2:] != self.dim:
             raise ValueError(
                 "Dimension mismatch: New tensor's last dimensions t.shape[2:]= {} must match "
-                "parameter.dim= {}".format(t.shape[2:], self.dim)
+                "attribute.dim= {}".format(t.shape[2:], self.dim)
             )
         self._tensor = t
 
@@ -75,35 +75,35 @@ class Parameter(ABC):
         """
         if self.prior_dist is None:
             raise RuntimeError(
-                "The parameter's prior distribution prior_dist is not defined."
+                "The attribute's prior distribution prior_dist is not defined."
             )
         self.tensor = self.prior_dist.rsample((self.n_cells, length, *self.dim))
 
     @abstractmethod
     def __repr__(self):
-        rep = "Parameter(n_cells={}, dim={}, prior_dist={}, tensor={})".format(
+        rep = "Attribute(n_cells={}, dim={}, prior_dist={}, tensor={})".format(
             self.n_cells, self.dim, self.prior_dist, self.tensor
         )
         return rep
 
 
 ########################################################################################################################
-# Parameter classes
+# Attribute classes
 ########################################################################################################################
 
 
-class GeneParameter(Parameter):
+class GeneAttribute(Attribute):
     """
-    Subclass representing a gene parameter.
+    Subclass representing a gene attribute.
     """
 
     def __repr__(self):
         return "Gene" + super().__repr__()
 
 
-class EdgeParameter(Parameter):
+class EdgeAttribute(Attribute):
     """
-    Subclass representing an edge parameter.
+    Subclass representing an edge attribute.
     """
 
     def __repr__(self):

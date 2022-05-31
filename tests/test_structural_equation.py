@@ -2,13 +2,13 @@ import pytest
 import torch
 from torch.distributions.normal import Normal
 
-from flecs.parameter import EdgeParameter, GeneParameter
+from flecs.attribute import EdgeAttribute, GeneAttribute
 from flecs.structural_equation import SigmoidLinearSE
 
 
 @pytest.fixture
 def my_se():
-    lin_se = SigmoidLinearSE(weights=EdgeParameter(dim=(1,), prior_dist=Normal(0, 1)))
+    lin_se = SigmoidLinearSE(weights=EdgeAttribute(dim=(1,), prior_dist=Normal(0, 1)))
     lin_se.initialize_given_structure(
         4, torch.LongTensor([[0, 1], [1, 2], [2, 3], [2, 0]])
     )
@@ -46,19 +46,19 @@ def test_decay_rates(my_se):
     ).all()
 
 
-def test_parameter_dict(my_se):
+def test_attribute_dict(my_se):
 
-    assert "weights" in my_se.parameter_dict
-    assert "gene_decay" in my_se.parameter_dict
+    assert "weights" in my_se.attribute_dict
+    assert "gene_decay" in my_se.attribute_dict
 
-    assert my_se.parameter_dict["weights"].tensor.shape == (1, my_se.n_edges, 1)
-    assert my_se.parameter_dict["gene_decay"].tensor.shape == (1, my_se.n_genes, 1)
+    assert my_se.attribute_dict["weights"].tensor.shape == (1, my_se.n_edges, 1)
+    assert my_se.attribute_dict["gene_decay"].tensor.shape == (1, my_se.n_genes, 1)
 
 
-def test_set_parameter(my_se):
-    my_se.set_parameter("new_gene_parameter", GeneParameter(dim=(3,)))
+def test_set_attribute(my_se):
+    my_se.set_attribute("new_gene_attribute", GeneAttribute(dim=(3,)))
 
-    assert "new_gene_parameter" in my_se.parameter_dict
+    assert "new_gene_attribute" in my_se.attribute_dict
 
 
 def test_derivatives(my_se):

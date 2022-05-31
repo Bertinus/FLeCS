@@ -1,13 +1,13 @@
 import torch
 
 from flecs.grn import GRN
-from flecs.parameter import EdgeParameter, GeneParameter
+from flecs.attribute import EdgeAttribute, GeneAttribute
 from flecs.structural_equation import StructuralEquation
 
 
-class Cell:
+class CellPopulation:
     """
-    Class responsible for the interaction between the GRN object and the StructuralEquation object.
+    Class representing a population of cells.
 
     Example:
         A simple example of initialization:
@@ -28,17 +28,17 @@ class Cell:
     """
 
     def __init__(self, grn: GRN, structural_equation: StructuralEquation):
-        self.grn = grn
-        self.structural_equation = structural_equation
-        self.structural_equation.initialize_given_structure(
-            self.grn.n_genes, self.grn.tedges
-        )
         """
         Args:
             grn (GRN): Gene Regulatory Network of the cell
             structural_equation (StructuralEquation): Structural Equation of the cell
         """
-        self._state = torch.zeros((0, self.grn.n_genes, 1))
+        self._grn = grn
+        self.structural_equation = structural_equation
+        self.structural_equation.initialize_given_structure(
+            self._grn.n_genes, self._grn.tedges
+        )
+        self._state = torch.zeros((0, self._grn.n_genes, 1))
 
         self.sync_grn_from_se()
 
@@ -55,7 +55,7 @@ class Cell:
     @property
     def n_genes(self):
         """(``int``) Number of genes."""
-        return self.structural_equation.n_genes
+        return self._state.shape[1]
 
     @property
     def n_edges(self):
@@ -69,7 +69,7 @@ class Cell:
 
     @state.setter
     def state(self, state: torch.Tensor):
-        self.grn.state = state
+        self._grn.state = state
         self._state = state
 
     def get_derivatives(self, state):
@@ -111,112 +111,112 @@ class Cell:
         """
         return self.structural_equation.get_decay_rates(state)
 
-    def get_gene_parameter(self, param_name) -> GeneParameter:
+    def get_gene_attribute(self, attr_name) -> GeneAttribute:
         """
-        Gets the gene parameter ``parameter_name``.
+        Gets the gene attribute ``attribute_name``.
 
         Args:
-            param_name (str): Name of the parameter.
+            attr_name (str): Name of the attribute.
 
         Returns:
-            GeneParameter: Parameter.
+            GeneAttribute: Attribute.
 
         """
-        return self.structural_equation.gene_parameter_dict[param_name]
+        return self.structural_equation.gene_attribute_dict[attr_name]
 
-    def get_edge_parameter(self, param_name):
+    def get_edge_attribute(self, attr_name):
         """
-        Gets the edge parameter ``parameter_name``.
+        Gets the edge attribute ``attribute_name``.
 
         Args:
-            param_name (str): Name of the parameter.
+            attr_name (str): Name of the attribute.
 
         Returns:
-            EdgeParameter: Parameter.
+            EdgeAttribute: Attribute.
 
         """
-        return self.structural_equation.edge_parameter_dict[param_name]
+        return self.structural_equation.edge_attribute_dict[attr_name]
 
-    def get_parameter(self, param_name):
+    def get_attribute(self, attr_name):
         """
-        Gets the parameter ``parameter_name``.
+        Gets the attribute ``attribute_name``.
 
         Args:
-            param_name (str): Name of the parameter.
+            attr_name (str): Name of the attribute.
 
         Returns:
-            Parameter: Parameter.
+            Attribute: Attribute.
 
         """
-        return self.structural_equation.parameter_dict[param_name]
+        return self.structural_equation.attribute_dict[attr_name]
 
     def sync_grn_from_se(self) -> None:
         """
         Updates the values of the gene and edge attributes of the GRN based on the values of the gene and edge
-        parameters contained in the structural equation.
+        attributes contained in the structural equation.
 
         If necessary, the relevant gene and edge attributes are added to the GRN.
         """
-        for param_name in self.structural_equation.gene_parameter_dict:
-            param_tensor = self.structural_equation.gene_parameter_dict[
-                param_name
+        for attr_name in self.structural_equation.gene_attribute_dict:
+            attr_tensor = self.structural_equation.gene_attribute_dict[
+                attr_name
             ].tensor
-            self.grn.set_gene_attr(param_name, param_tensor)
+            self._grn.set_gene_attr(attr_name, attr_tensor)
 
-        for param_name in self.structural_equation.edge_parameter_dict:
-            param_tensor = self.structural_equation.edge_parameter_dict[
-                param_name
+        for attr_name in self.structural_equation.edge_attribute_dict:
+            attr_tensor = self.structural_equation.edge_attribute_dict[
+                attr_name
             ].tensor
-            self.grn.set_edge_attr(param_name, param_tensor)
+            self._grn.set_edge_attr(attr_name, attr_tensor)
 
     def sync_se_from_grn(self) -> None:
         """
-        Updates the values of the gene and edge parameters contained in the structural equation based on the gene and
+        Updates the values of the gene and edge attributes contained in the structural equation based on the gene and
         edge attributes of the GRN.
 
-        If necessary, the relevant gene and edge parameters are added to the structural equation.
+        If necessary, the relevant gene and edge attributes are added to the structural equation.
         """
         self.sync_se_from_grn_genes()
         self.sync_se_from_grn_edges()
 
     def sync_se_from_grn_genes(self) -> None:
         """
-        Updates the values of the gene parameters contained in the structural equation based on the gene attributes of
+        Updates the values of the gene attributes contained in the structural equation based on the gene attributes of
         the GRN.
 
-        If necessary, the relevant gene parameters are added to the structural equation.
+        If necessary, the relevant gene attributes are added to the structural equation.
         """
-        for param_name in self.grn.gene_attr_name_list:
-            param_tensor = self.grn.get_gene_attr(param_name)
+        for attr_name in self._grn.gene_attr_name_list:
+            attr_tensor = self._grn.get_gene_attr(attr_name)
 
-            if param_name in self.structural_equation.gene_parameter_dict:
-                self.structural_equation.gene_parameter_dict[
-                    param_name
-                ].tensor = param_tensor
+            if attr_name in self.structural_equation.gene_attribute_dict:
+                self.structural_equation.gene_attribute_dict[
+                    attr_name
+                ].tensor = attr_tensor
             else:
-                new_gene_parameter = GeneParameter(dim=param_tensor.shape[2:])
-                new_gene_parameter.tensor = param_tensor
+                new_gene_attribute = GeneAttribute(dim=attr_tensor.shape[2:])
+                new_gene_attribute.tensor = attr_tensor
 
-                self.structural_equation.set_parameter(param_name, new_gene_parameter)
+                self.structural_equation.set_attribute(attr_name, new_gene_attribute)
 
     def sync_se_from_grn_edges(self) -> None:
         """
-        Updates the values of the edge parameters contained in the structural equation based on the edge attributes of
+        Updates the values of the edge attributes contained in the structural equation based on the edge attributes of
         the GRN.
 
-        If necessary, the relevant edge parameters are added to the structural equation.
+        If necessary, the relevant edge attributes are added to the structural equation.
         """
-        self.structural_equation.edges = self.grn.tedges
+        self.structural_equation.edges = self._grn.tedges
 
-        for param_name in self.grn.edge_attr_name_list:
-            param_tensor = self.grn.get_edge_attr(param_name)
+        for attr_name in self._grn.edge_attr_name_list:
+            attr_tensor = self._grn.get_edge_attr(attr_name)
 
-            if param_name in self.structural_equation.edge_parameter_dict:
-                self.structural_equation.edge_parameter_dict[
-                    param_name
-                ].tensor = param_tensor
+            if attr_name in self.structural_equation.edge_attribute_dict:
+                self.structural_equation.edge_attribute_dict[
+                    attr_name
+                ].tensor = attr_tensor
             else:
-                new_edge_parameter = EdgeParameter(dim=param_tensor.shape[2:])
-                new_edge_parameter.tensor = param_tensor
+                new_edge_attribute = EdgeAttribute(dim=attr_tensor.shape[2:])
+                new_edge_attribute.tensor = attr_tensor
 
-                self.structural_equation.set_parameter(param_name, new_edge_parameter)
+                self.structural_equation.set_attribute(attr_name, new_edge_attribute)

@@ -36,7 +36,7 @@ def plot_trajectory(trajectory, time_points=None, legend=True):
 
     Args:
         trajectory (torch.Tensor): States of the cell observed at the different time points.
-            Shape (n_time_points, n_cells, n_genes).
+            Shape (n_time_points, 1, n_genes).
         time_points (list or 1D numpy.array): Times of the observations.
         legend (bool): Whether to add a legend to the plot.
 

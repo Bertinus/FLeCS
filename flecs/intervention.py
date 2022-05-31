@@ -4,7 +4,7 @@ from typing import Dict
 
 import torch
 
-from flecs.cell import Cell
+from flecs.cell_population import CellPopulation
 
 ########################################################################################################################
 # Intervention Abstract class
@@ -17,12 +17,12 @@ class Intervention(ABC):
     """
 
     @abstractmethod
-    def reset(self, cell: Cell) -> None:
+    def reset(self, cells: CellPopulation) -> None:
         """
         Abstract method for resetting cells to their default state.
 
         Args:
-            cell (Cell): Cell object
+            cells (CellPopulation): CellPopulation object
 
         """
 
@@ -44,54 +44,54 @@ class KnockoutIntervention(Intervention):
     Attributes:
         intervened_genes (Dict[int, list]): Dictionary whose keys correspond to the genes that have been knocked out.
             ``intervened_genes[k]`` contains the list of edges, as well as their attributes, that have been removed from
-            the cell because of the knockout of gene ``k``.
+            the cells because of the knockout of gene ``k``.
     """
 
     def __init__(self):
         self.intervened_genes: Dict[int, list] = {}
 
-    def intervene(self, cell: Cell, gene: int):
+    def intervene(self, cells: CellPopulation, gene: int):
         """
-        Performs a knockout intervention on the cell by removing all outgoing edges of gene ``gene``.
+        Performs a knockout intervention on the cells by removing all outgoing edges of gene ``gene``.
 
         Args:
-            cell (Cell): Cell to intervene on.
+            cells (CellPopulation): CellPopulation to intervene on.
             gene (int): Index of the gene on which the knockout is performed.
         """
         if gene in self.intervened_genes:
             raise ValueError("Gene {} has already been knocked out".format(gene))
 
         # Make sure the GRN is synchronized
-        cell.sync_grn_from_se()
+        cells.sync_grn_from_se()
 
         # Save outgoing edges
         self.intervened_genes[gene] = copy.deepcopy(
-            list(cell.grn.out_edges(gene, data=True))
+            list(cells._grn.out_edges(gene, data=True))
         )
         # Truncate the graph
-        cell.grn.remove_edges_from(self.intervened_genes[gene])
+        cells._grn.remove_edges_from(self.intervened_genes[gene])
 
         # We need to synchronize the structural equation to the intervened graph
-        cell.sync_se_from_grn()
+        cells.sync_se_from_grn()
 
-    def reset(self, cell: Cell):
+    def reset(self, cells: CellPopulation):
         """
-        Resets the cell to its default state.
+        Resets the cells to their default state.
 
         Args:
-            cell (Cell): Cell to reset.
+            cells (CellPopulation): CellPopulation to reset.
         """
 
-        cell.sync_grn_from_se()
+        cells.sync_grn_from_se()
 
         # Recover original graph if the graph has been intervened
         for gene in self.intervened_genes:
-            cell.grn.add_edges_from(self.intervened_genes[gene])
+            cells._grn.add_edges_from(self.intervened_genes[gene])
 
         self.intervened_genes = {}
 
         # We need to synchronize the structural equation to the graph
-        cell.sync_se_from_grn()
+        cells.sync_se_from_grn()
 
 
 class DrugLinearIntervention(Intervention):
@@ -115,22 +115,22 @@ class DrugLinearIntervention(Intervention):
     def __init__(self):
         self.sum_of_direct_effects = None
 
-    def intervene(self, cell: Cell, drug_direct_effects: torch.Tensor):
+    def intervene(self, cells: CellPopulation, drug_direct_effects: torch.Tensor):
         """
-        Performs a drug intervention on the cell. Production rates are shifted by ``drug_direct_effects``.
+        Performs a drug intervention on the cells. Production rates are shifted by ``drug_direct_effects``.
 
         Args:
-            cell (Cell): Cell to intervene on.
+            cells (CellPopulation): CellPopulation to intervene on.
             drug_direct_effects (torch.Tensor): Direct effects of the drug on the genes. Shape (n_genes).
         """
 
         assert len(drug_direct_effects.shape) == 1
-        assert drug_direct_effects.shape[0] == cell.n_genes
+        assert drug_direct_effects.shape[0] == cells.n_genes
 
         if self.sum_of_direct_effects is None:
             self.sum_of_direct_effects = drug_direct_effects
         else:
-            assert cell.n_genes == self.sum_of_direct_effects.shape[0]
+            assert cells.n_genes == self.sum_of_direct_effects.shape[0]
             self.sum_of_direct_effects += drug_direct_effects
 
         def get_intervened_production_rates(_self, state):
@@ -140,20 +140,20 @@ class DrugLinearIntervention(Intervention):
             )
 
         # Override the method which generates derivatives
-        funcType = type(cell.get_production_rates)
-        cell.get_production_rates = funcType(get_intervened_production_rates, cell)
+        funcType = type(cells.get_production_rates)
+        cells.get_production_rates = funcType(get_intervened_production_rates, cells)
 
-    def reset(self, cell: Cell):
+    def reset(self, cells: CellPopulation):
         """
-        Resets the cell to its default state.
+        Resets the cells to their default state.
 
         Args:
-            cell (Cell): Cell to reset.
+            cells (CellPopulation): CellPopulation to reset.
         """
 
         def get_default_production_rates(self, state):
             return self.structural_equation.get_production_rates(state)
 
         # Override the method which generates derivatives
-        func_type = type(cell.get_production_rates)
-        cell.get_production_rates = func_type(get_default_production_rates, cell)
+        func_type = type(cells.get_production_rates)
+        cells.get_production_rates = func_type(get_default_production_rates, cells)
