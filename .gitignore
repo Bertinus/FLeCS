@@ -1,6 +1,4 @@
 *.egg-info
 *.ipynb
-LINCS/raw/GSE*
-LINCS/raw/interactions.tsv
-RegNet
+datasets/*
 .coverage
