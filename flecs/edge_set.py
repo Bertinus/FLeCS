@@ -4,6 +4,25 @@ from typing import Dict
 
 class EdgeSet:
     def __init__(self, edges: torch.Tensor = None, attribute_dict: Dict[str, torch.Tensor] = None):
+        """
+        Class responsible for representing edges of a given type. An edge type is defined by a tuple
+        (source_node_type, interaction_type, target_node_type).
+
+        Example:  ("gene", "codes", "protein").
+
+        Its attribute "state" points to a subset of the state of the cell "super_cell". The subset is defined by the
+        range [idx_low, idx_high] along the second axis.
+
+
+        Similarly, the decay_rate and production_rate attributes point to subsets of the corresponding attributes of
+        "super_cell".
+
+        Args:
+            edges: shape (n_edges, 2).
+                The first column corresponds to the indices of the source nodes in cell[source_node_type].
+                The second column corresponds to the indices of the target nodes in cell[target_node_type].
+            attribute_dict:
+        """
         if edges is None:
             edges = torch.zeros((0, 2)).long()
         if attribute_dict is None:
@@ -50,7 +69,6 @@ class EdgeSet:
         self.edges = torch.cat((self.edges, edges))
 
         for attr_name in attribute_dict:
-
             # Make sure the values of edge_attr_dict have the right dimension
             if len(attribute_dict[attr_name].shape) == 1:
                 attribute_dict[attr_name] = attribute_dict[attr_name][None, :]
