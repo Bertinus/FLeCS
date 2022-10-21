@@ -3,10 +3,19 @@ from typing import Dict
 
 
 class NodeSet:
+    """
+    srt of proteins, genes, small mol, oligos.
+    NodeSet should never overlap idx.
+
+    Node attribute is an array. e.g., decay rate for each gene.
+    + for ODE solver, state of cell must be in a single tensor.
+    + but we want the total state to encompass multiple nodesets
+    + so we index the super cell so we can pass a nodeset tensor to the ODE solver.
+    """
     def __init__(self, super_cell, idx_low: int, idx_high: int, attribute_dict: Dict[str, torch.Tensor] = None):
-        self._super_cell = super_cell
-        self._idx_low = idx_low
-        self._idx_high = idx_high
+        self._super_cell = super_cell  # parent <- this is a cell population.
+        self._idx_low = idx_low  #  range of rows in the state for this node set.
+        self._idx_high = idx_high  #
 
         # Initialize node attributes
         self.attribute_dict = {}

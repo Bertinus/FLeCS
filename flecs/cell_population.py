@@ -6,6 +6,17 @@ from typing import Tuple, Dict, Union
 
 
 class CellPopulation(ABC):
+    """
+    assumes all genes are independent.
+    no gene gene interactions here but elsewhere feedback loops possible.
+
+    state: (n_cells, n_genes, gene_emb/feature_size) <- concentrations
+    production_rates: (n_cells x [gene_prod_rate, protein_prod_rate]) <- init the state of each cell.
+    decay_rates: (n_cells x [gene_prod_rate, protein_prod_rate]) <- init the state of each cell.
+
+    NodeSetDict - str type of node (e.g., gene, protein).
+    EdgeSetDict - str types of interactions (src, interaction_type, dest).
+    """
     def __init__(self):
         self.state = torch.zeros((0, 0, 0))
         self.production_rates = torch.zeros((0, 0, 0))

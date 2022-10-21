@@ -3,6 +3,7 @@ from typing import Dict
 
 
 class EdgeSet:
+    """???"""
     def __init__(self, edges: torch.Tensor = None, attribute_dict: Dict[str, torch.Tensor] = None):
         if edges is None:
             edges = torch.zeros((0, 2)).long()

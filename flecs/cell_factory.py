@@ -8,6 +8,9 @@ import torch_scatter
 
 
 class CellFactory:
+    """
+    Class that initializes a cell population.
+    """
     def __init__(self, interaction_graph: InteractionGraph):
 
         self._node_data_dict = interaction_graph.get_formatted_node_data()
@@ -31,7 +34,8 @@ class CellFactory:
                     parent_indices = self[e_type].tails
                     children_indices = self[e_type].heads
 
-                    edge_messages = self[e_type]["weights"] * self[src_n_type].state[:, parent_indices]
+                    state_of_parent_indices = self[src_n_type].state[:, parent_indices]
+                    edge_messages = self[e_type]["weights"] * state_of_parent_indices
 
                     torch_scatter.scatter(edge_messages, children_indices, dim=1, out=self[tgt_n_type].production_rate)
 
@@ -89,6 +93,7 @@ class CellFactory:
 
 
 def main():
+    """Explore this :D"""
 
     interaction_graph = load_interaction_data("test")
     factory = CellFactory(interaction_graph)
