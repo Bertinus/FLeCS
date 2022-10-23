@@ -1,0 +1,35 @@
+name: cellsim
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - networkx=2.6
+  - numpy
+  - matplotlib
+  - jupyter
+  - scipy
+  - pytorch=1.12
+  - pandas
+  - torchdiffeq
+  - tqdm
+  - cmappy
+  - pubchempy
+  - h5py=3.1
+  - rdkit
+  - seaborn
+  - cdt
+  - pytest
+  - coverage
+  - pytest-cov
+  - mkdocs
+  - mkdocstrings
+  - mkdocs-material
+  - mathjax
+  - biopython
+  - anndata
+  - scanpy
+  - torch-scatter
+  - pyranges
+  - mysqlclient
+prefix: /Users/paul/miniconda3/envs/cellsim
