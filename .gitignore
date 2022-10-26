@@ -2,3 +2,4 @@
 *.ipynb
 .coverage
 .vscode
+__pycache__
