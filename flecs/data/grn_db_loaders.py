@@ -33,7 +33,10 @@ def get_regulondb_graph(tf_only=False):
 
     # Add 'activator' edge attributes
     attrs = {
-        all_edges[i]: {"activator": torch.tensor([all_edges_is_activator[i]]), "type": ""}
+        all_edges[i]: {
+            "activator": torch.tensor([all_edges_is_activator[i]]),
+            "type": "",
+        }
         for i in range(len(all_edges))
     }
     nx.set_edge_attributes(regulon_graph, attrs)
@@ -60,16 +63,15 @@ def get_regulondb_edges(tf_only=False):
     """
     Get the list of edges and "is_act" edge attributes from the RegulonDB database
 
-    :param tf_only: If True, genes that are not transcription factors are not part of the graph
+    :param tf_only: If True, genes that are not transcription factors are not part of
+        the graph.
     :return: gene_to_idx_dict: dictionary mapping gene names to their indices.
             all_edges: list of tuples representing edges in the graph.
-            all_edges_is_activator: list with same length as all_edges. Values in [0, 1], to indicate whether this edge
+            all_edges_is_activator: list with same length as all_edges. Values in
+                [0, 1], to indicate whether this edge.
             corresponds to an activator or repressor interaction.
     """
-    if tf_only:
-        network_df = load_tf_tf_network()
-    else:
-        network_df = load_tf_gene_network()
+    network_df = load_tf_tf_network() if tf_only else load_tf_gene_network()
 
     # All names to lowercase
     network_df["TF_name"] = network_df["TF_name"].apply(lambda s: s.lower())
@@ -90,8 +92,11 @@ def get_regulondb_edges(tf_only=False):
 
     # Arbitrarily add negative self loop to all TFs that do not have any regulator
     for tf_name in tf_with_no_regulator:
-        network_df = network_df.append(
-            pd.DataFrame([[tf_name, tf_name, "-"]], columns=network_df.columns)
+        network_df = pd.concat(
+            [
+                network_df,
+                pd.DataFrame([[tf_name, tf_name, "-"]], columns=network_df.columns),
+            ]
         )
 
     # Dictionary mapping genes to their node index
@@ -123,12 +128,14 @@ def get_regulondb_edges(tf_only=False):
     return gene_to_idx_dict, all_edges, all_edges_is_activator
 
 
-def load_and_crop_file(filename, n_header_lines):
+def load_and_crop_regulon_db_file(filename, n_header_lines):
+    """Loads a .csv file and removes the header."""
     f = open(filename, "r", encoding="ISO-8859-1")
-    lines = f.readlines()[n_header_lines+1:]  # TODO: how general is this?
+    lines = f.readlines()[n_header_lines + 1 :]  # TODO: how general is this?
     df = pd.DataFrame([line.strip().split("\t") for line in lines])
 
     return df
+
 
 def load_tf_gene_network(n_header_lines=38):
     """Loads a transcription factor gene network from RegulonDB.
@@ -139,9 +146,14 @@ def load_tf_gene_network(n_header_lines=38):
     Returns: A dataframe containing the transcription factor name, target name, and
         effect valence.
     """
-    filename = os.path.join(
-        get_project_root(), "datasets", "RegulonDB", "network_tf_gene.txt")
-    tf_gene_df = load_and_crop_file(filename, n_header_lines)
+    tf_gene_df = load_and_crop_regulon_db_file(
+        os.path.join(
+            get_project_root(), "datasets", "RegulonDB", "network_tf_gene.txt"
+        ),
+        n_header_lines,
+    )
+
+    # Name columns.
     tf_gene_df.columns = [
         "TF_ID",
         "TF_name",
@@ -152,6 +164,7 @@ def load_tf_gene_network(n_header_lines=38):
         "evidence_type",
     ]
 
+    # Removes unused columns.
     return tf_gene_df.loc[:, ["TF_name", "regulated_name", "regulatory_effect"]]
 
 
@@ -164,10 +177,12 @@ def load_tf_tf_network(n_header_lines=35):
     Returns: A dataframe containing the transcription factor name, target name, and
         effect valence.
     """
+    tf_tf_df = load_and_crop_regulon_db_file(
+        os.path.join(get_project_root(), "datasets", "RegulonDB", "network_tf_tf.txt"),
+        n_header_lines,
+    )
 
-    filename = os.path.join(
-        get_project_root(), "datasets", "RegulonDB", "network_tf_tf.txt")
-    tf_tf_df = load_and_crop_file(filename, n_header_lines)
+    # Name columns.
     tf_tf_df.columns = [
         "TF_name",
         "regulated_name",
@@ -176,17 +191,12 @@ def load_tf_tf_network(n_header_lines=35):
         "evidence_type",
     ]
 
+    # Removes unused columns.
     return tf_tf_df.loc[:, ["TF_name", "regulated_name", "regulatory_effect"]]
 
 
-########################################################################################################################
-# RealNet
-########################################################################################################################
-
-
 def get_realnet_graph(
-    path_to_file="RealNet/Network_compendium/Other_networks/Global_regulatory_ENCODE/"
-    "ENCODE-nets.proximal_raw.distal.txt",
+    path_to_file,
     tf_only=False,
     subsample_edge_prop=1,
 ):
@@ -200,6 +210,7 @@ def get_realnet_graph(
         header=None,
         usecols=[0, 1],
         names=["TF gene", "target gene"],
+        compression="gzip",
     )
     network_df = network_df.dropna()
 
@@ -234,8 +245,11 @@ def get_realnet_graph(
 
     # Arbitrarily add self loop to all TFs that do not have any regulator
     for tf_name in tf_with_no_regulator:
-        network_df = network_df.append(
-            pd.DataFrame([[tf_name, tf_name]], columns=network_df.columns)
+        network_df = pd.concat(
+            [
+                network_df,
+                pd.DataFrame([[tf_name, tf_name]], columns=network_df.columns),
+            ]
         )
 
     # Add node index information to the dataframe
@@ -267,7 +281,11 @@ def get_realnet_graph(
     realnet_graph.add_edges_from(all_edges, type="")
 
     # Add a node attribute to indicate whether a gene is a transcription factor or not
-    all_tf_indices = list(gene_to_idx_dict.values()) if tf_only else list(network_df["TF_index"].unique())
+    all_tf_indices = (
+        list(gene_to_idx_dict.values())
+        if tf_only
+        else list(network_df["TF_index"].unique())
+    )
     nx.set_node_attributes(
         realnet_graph,
         {
