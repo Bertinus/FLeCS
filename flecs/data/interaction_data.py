@@ -33,9 +33,8 @@ RelationSetData = Dict[RelationType, SetData]
 
 class InteractionGraph(nx.DiGraph):
     def __init__(self, graph: nx.DiGraph):
-        """
-        Class responsible for holding interaction data about the Cell, such as Gene Regulatory Networks or Pathways.
-        It inherits from nx.DiGraph and is formatted such that:
+        """Holds interaction data about a Cell, s.a. Gene Regulatory Networks/Pathways.
+        Inherits from nx.DiGraph and is formatted such that:
         - Nodes and edges are typed, based on a "type" attribute
         - Nodes are ordered based on their type
         - All nodes/edges of a given type have the same set of attributes
@@ -66,14 +65,14 @@ class InteractionGraph(nx.DiGraph):
 
     @property
     def node_types(self) -> List[NodeType]:
-        """
+        """TODO
         (``List[NodeType]``) List of length (n_nodes) which contains the types of all the nodes.
         """
         return list(nx.get_node_attributes(self, "type").values())
 
     @property
     def edge_types(self) -> List[EdgeType]:
-        """
+        """TODO
         (``List[EdgeType]``) List of length (n_edges) which contains the types of all the edges.
         """
         return list(nx.get_edge_attributes(self, "type").values())
@@ -87,7 +86,7 @@ class InteractionGraph(nx.DiGraph):
         return list(np.unique(self.edge_types))
 
     def node_data(self, n_type: str = None) -> NodeData:
-        """
+        """TODO
         Args:
             n_type (str): node type to restrict to
 
@@ -107,7 +106,7 @@ class InteractionGraph(nx.DiGraph):
     def edge_data(
         self, e_type: str = None, src_type: str = None, tgt_type: str = None
     ) -> EdgeData:
-        """
+        """TODO
         Args:
             e_type (str): edge type to restrict to
             src_type (str): type of the source node
@@ -130,14 +129,15 @@ class InteractionGraph(nx.DiGraph):
         return {(e[0], e[1]): e[2] for e in self.edges(data=True) if to_be_included(e)}
 
     def get_formatted_node_data(self) -> NodeSetData:
-        """
-        Formats the data of nodes. For all node types n_type, a single dictionary is built. It is such that values have
-        length equal to the number of nodes of type n_type. The dictionary also contains a key "idx" listing the
-        indices of the nodes of type n_type.
-        Returns:
-            FormattedDataDict: Keys correspond to node types. The values associated with key n_type is a dict
-            containing the data of the nodes of type n_type.
+        """Formats the data of nodes.
 
+        For all node types n_type, a single dictionary is built. It is such that values
+        have length equal to the number of nodes of type n_type. The dictionary also
+        contains a key "idx" listing the indices of the nodes of type n_type.
+
+        Returns:
+            FormattedDataDict: Keys correspond to node types. The values associated
+            with key n_type is a dict containing the data of the nodes of type n_type.
         """
         formatted_node_data = {}
         for n_type in self.unique_node_types:
@@ -148,6 +148,7 @@ class InteractionGraph(nx.DiGraph):
         return formatted_node_data
 
     def get_formatted_edge_data(self) -> RelationSetData:
+        """TODO"""
         formatted_edge_data = {}
         for src_type, e_type, tgt_type in itertools.product(
             self.unique_node_types, self.unique_edge_types, self.unique_node_types
@@ -162,15 +163,16 @@ class InteractionGraph(nx.DiGraph):
 
     @staticmethod
     def format_type_data_dict(set_data_dict: Union[NodeData, EdgeData]) -> SetData:
-        """
-        Formats a data dictionary.
+        """Formats a data dictionary.
 
         Args:
-            set_data_dict (Dict[Union[int, Tuple[int, int]], Data]): Dictionary mapping node/edge indices to their Data.
+            set_data_dict (Dict[Union[int, Tuple[int, int]], Data]): Dictionary
+                mapping node/edge indices to their Data.
 
         Returns:
-            FormattedDataDict: Keys are attribute names. Values have length equal to the number of nodes/edges found
-            in set_data_dict. The dictionary also contains a key "idx" listing the indices of the nodes/edges.
+            FormattedDataDict. Keys are attribute names. Values have length equal to
+                the number of nodes/edges found in set_data_dict. The dictionary also
+                contains a key "idx" listing the indices of the nodes/edges.
 
         """
         formatted_tdata = {"idx": []}
@@ -195,9 +197,7 @@ class InteractionGraph(nx.DiGraph):
         return formatted_tdata
 
     def _check_attribute_consistency_within_node_types(self):
-        """
-        Checks that all nodes of a given type have the same set of attributes.
-        """
+        """Checks that all nodes of a given type have the same set of attributes."""
         for n_type in self.unique_node_types:
             node_data_list = list(self.node_data(n_type).values())
             reference_attr_names = set(node_data_list.pop(0).keys())
@@ -205,9 +205,7 @@ class InteractionGraph(nx.DiGraph):
                 assert set(n_data.keys()) == reference_attr_names
 
     def _check_attribute_consistency_within_edge_types(self):
-        """
-        Checks that all edges of a given type have the same set of attributes.
-        """
+        """Checks that all edges of a given type have the same set of attributes."""
         for e_type in self.unique_edge_types:
             edge_data_list = list(self.edge_data(e_type).values())
             reference_attr_names = set(edge_data_list.pop(0).keys())
@@ -363,24 +361,27 @@ class InteractionGraph(nx.DiGraph):
         nx.draw_networkx_labels(self, pos=pos)
 
 
-def available_tissue_type_files():
+def available_realnet_tissue_type_files():
+    """Returns all high-level RealNet networks downloaded."""
     return [
         f
         for f in os.listdir(
             os.path.join(
                 get_project_root(),
-                "datasets/RealNet/Network_compendium/"
-                "Tissue-specific_regulatory_networks_FANTOM5-v1/"
+                "datasets",
+                "RealNet",
+                "Network_compendium",
+                "Tissue-specific_regulatory_networks_FANTOM5-v1",
                 "32_high-level_networks",
             )
         )
-        if f.endswith(".txt")
+        if f.strip(".gz").endswith(".txt")  # Matches .txt.gz and .txt
     ]
 
 
 def load_interaction_data(
     interaction_type,
-    tissue_type_file=None,
+    realnet_tissue_type_file=None,
     tf_only=False,
     subsample_edge_prop=1.0,
     n_nodes=None,
@@ -395,10 +396,6 @@ def load_interaction_data(
         "fantom5",
         "random",
     ]
-
-    ##############################
-    # Test
-    ##############################
 
     if interaction_type == "test":
         nx_graph = load_calcium_signaling_pathway()
@@ -423,63 +420,49 @@ def load_interaction_data(
         nx.set_edge_attributes(nx_graph, edge_attr)
         return InteractionGraph(nx_graph)
 
-    ##############################
-    # Calcium pathway
-    ##############################
-
-    if interaction_type == "calcium_pathway":
+    elif interaction_type == "calcium_pathway":
         return InteractionGraph(load_calcium_signaling_pathway())
 
-    ##############################
-    # Regulon DB
-    ##############################
-
-    if interaction_type == "regulon_db":
+    elif interaction_type == "regulon_db":
         return InteractionGraph(get_regulondb_graph(tf_only=tf_only))
 
-    ##############################
-    # Encode
-    ##############################
-
-    if interaction_type == "encode":
+    elif interaction_type == "encode":
         encode_graph = get_realnet_graph(
-            path_to_file="RealNet/Network_compendium/Other_networks/Global_regulatory_ENCODE/"
-            "ENCODE-nets.proximal_raw.distal.txt",
+            path_to_file=os.path.join(
+                "RealNet",
+                "Network_compendium",
+                "Other_networks",
+                "Global_regulatory_ENCODE",
+                "ENCODE-nets.proximal_raw.distal.txt.gz",
+            ),
             tf_only=tf_only,
             subsample_edge_prop=subsample_edge_prop,
         )
         return InteractionGraph(encode_graph)
 
-    ##############################
-    # Fantom5
-    ##############################
-
-    if interaction_type == "fantom5":
-        if tissue_type_file not in available_tissue_type_files():
+    elif interaction_type == "fantom5":
+        if realnet_tissue_type_file not in available_realnet_tissue_type_files():
             raise ValueError(
-                "When loading GRNs from fantom5, the 'tissue_type_file' argument needs to be specified. "
-                "To get available files, run: 'flecs.data.interaction_graph.available_tissue_type_files()'"
+                "When loading GRNs from fantom5, the 'realnet_tissue_type_file'"
+                "argument needs to be specified. To get available files, run:"
+                "'flecs.data.interaction_data.available_tissue_type_files()'"
             )
         fantom5_graph = get_realnet_graph(
             path_to_file=os.path.join(
-                "RealNet/Network_compendium/"
-                "Tissue-specific_regulatory_networks_FANTOM5-v1/32_high-level_networks/",
-                tissue_type_file,
+                "RealNet",
+                "Network_compendium",
+                "Tissue-specific_regulatory_networks_FANTOM5-v1",
+                "32_high-level_networks",
+                realnet_tissue_type_file,
             ),
             tf_only=tf_only,
             subsample_edge_prop=subsample_edge_prop,
         )
         return InteractionGraph(fantom5_graph)
 
-    ##############################
-    # Random
-    ##############################
-
-    if interaction_type == "random":
-        if n_nodes is None or avg_num_parents is None:
-            raise ValueError(
-                "When loading random GRNs, the 'n_nodes' and  'avg_num_parents' arguments need to be specified."
-            )
+    elif interaction_type == "random":
+        assert n_nodes is not None, "Please specify 'n_nodes'."
+        assert avg_num_parents is not None, "Please specify 'avg_num_parents'."
         random_graph = get_graph_from_adj_mat(
             get_random_adjacency_mat(n_nodes=n_nodes, avg_num_parents=avg_num_parents)
         )
@@ -488,28 +471,57 @@ def load_interaction_data(
 
 def main():
 
-    print("calcium_pathway", load_interaction_data("calcium_pathway").__repr__())
-
-    print("regulon_db", load_interaction_data("regulon_db").__repr__())
-
-    print("regulon_db", load_interaction_data("regulon_db", tf_only=True).__repr__())
-
-    print("encode", load_interaction_data("encode").__repr__())
-
-    print("encode", load_interaction_data("encode", tf_only=True).__repr__())
-
-    print("encode", load_interaction_data("encode", tf_only=True, subsample_edge_prop=0.5).__repr__())
-
-    print("fantom5", load_interaction_data("fantom5", tissue_type_file="01_neurons_fetal_brain.txt").__repr__())
-
-    print("fantom5", load_interaction_data("fantom5", tissue_type_file="01_neurons_fetal_brain.txt",
-                                           tf_only=True).__repr__())
-
-    print("fantom5", load_interaction_data("fantom5", tissue_type_file="01_neurons_fetal_brain.txt",
-                                           tf_only=True,
-                                           subsample_edge_prop=0.5).__repr__())
-
-    print("random", load_interaction_data("random", n_nodes=10, avg_num_parents=3).__repr__())
+    print(
+        "calcium_pathway: {}".format(
+            load_interaction_data("calcium_pathway").__repr__()
+        )
+    )
+    print("regulon_db: {}".format(load_interaction_data("regulon_db").__repr__()))
+    print(
+        "regulon_db: {}".format(
+            load_interaction_data("regulon_db", tf_only=True).__repr__()
+        )
+    )
+    print("encode: {}".format(load_interaction_data("encode").__repr__()))
+    print("encode: {}".format(load_interaction_data("encode", tf_only=True).__repr__()))
+    print(
+        "encode: {}".format(
+            load_interaction_data(
+                "encode", tf_only=True, subsample_edge_prop=0.5
+            ).__repr__()
+        )
+    )
+    print(
+        "fantom5: {}".format(
+            load_interaction_data(
+                "fantom5", realnet_tissue_type_file="01_neurons_fetal_brain.txt.gz"
+            ).__repr__()
+        )
+    )
+    print(
+        "fantom5: {}".format(
+            load_interaction_data(
+                "fantom5",
+                realnet_tissue_type_file="01_neurons_fetal_brain.txt.gz",
+                tf_only=True,
+            ).__repr__()
+        )
+    )
+    print(
+        "fantom5: {}".format(
+            load_interaction_data(
+                "fantom5",
+                realnet_tissue_type_file="01_neurons_fetal_brain.txt.gz",
+                tf_only=True,
+                subsample_edge_prop=0.5,
+            ).__repr__()
+        )
+    )
+    print(
+        "random: {}".format(
+            load_interaction_data("random", n_nodes=10, avg_num_parents=3).__repr__()
+        )
+    )
 
 
 if __name__ == "__main__":
