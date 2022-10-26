@@ -1,0 +1,17 @@
+name: flecs
+channels:
+  - conda-forge
+  - defaults
+  - pyg
+  - pytorch
+dependencies:
+  - conda-forge::biopython >=1.79
+  - matplotlib
+  - networkx >=2.6.3
+  - numpy >=1.21.2
+  - pandas >=1.3.4
+  - pyg::pytorch-scatter
+  - pytorch::cpuonly
+  - pytorch::pytorch >=1.12.1
+  - scipy >=1.7.1
+  - torchdiffeq >=0.2.2
