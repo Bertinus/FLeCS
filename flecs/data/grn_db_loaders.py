@@ -123,12 +123,25 @@ def get_regulondb_edges(tf_only=False):
     return gene_to_idx_dict, all_edges, all_edges_is_activator
 
 
-def load_tf_gene_network():
-    f = open(os.path.join(get_project_root(), "datasets", "RegulonDB", "network_tf_gene.txt"), "r")
-    lines = f.readlines()[37:]
+def load_and_crop_file(filename, n_header_lines):
+    f = open(filename, "r", encoding="ISO-8859-1")
+    lines = f.readlines()[n_header_lines+1:]  # TODO: how general is this?
+    df = pd.DataFrame([line.strip().split("\t") for line in lines])
 
-    tf_gene_df = pd.DataFrame([line.split("\t") for line in lines])
+    return df
 
+def load_tf_gene_network(n_header_lines=38):
+    """Loads a transcription factor gene network from RegulonDB.
+
+    Args:
+        n_header_lines (int): Number of lines to skip in input file when constructing
+            the dataframe.
+    Returns: A dataframe containing the transcription factor name, target name, and
+        effect valence.
+    """
+    filename = os.path.join(
+        get_project_root(), "datasets", "RegulonDB", "network_tf_gene.txt")
+    tf_gene_df = load_and_crop_file(filename, n_header_lines)
     tf_gene_df.columns = [
         "TF_ID",
         "TF_name",
@@ -137,28 +150,33 @@ def load_tf_gene_network():
         "regulatory_effect",
         "evidence",
         "evidence_type",
-        "r",
     ]
 
-    return tf_gene_df[["TF_name", "regulated_name", "regulatory_effect"]]
+    return tf_gene_df.loc[:, ["TF_name", "regulated_name", "regulatory_effect"]]
 
 
-def load_tf_tf_network():
-    f = open(os.path.join(get_project_root(), "datasets", "RegulonDB", "network_tf_tf.txt"), "r")
-    lines = f.readlines()[35:]
+def load_tf_tf_network(n_header_lines=35):
+    """Loads a transcription factor transcription factor network from RegulonDB.
 
-    tf_tf_df = pd.DataFrame([line.split("\t") for line in lines])
+    Args:
+        n_header_lines (int): Number of lines to skip in input file when constructing
+            the dataframe.
+    Returns: A dataframe containing the transcription factor name, target name, and
+        effect valence.
+    """
 
+    filename = os.path.join(
+        get_project_root(), "datasets", "RegulonDB", "network_tf_tf.txt")
+    tf_tf_df = load_and_crop_file(filename, n_header_lines)
     tf_tf_df.columns = [
         "TF_name",
         "regulated_name",
         "regulatory_effect",
         "evidence",
         "evidence_type",
-        "r",
     ]
 
-    return tf_tf_df[["TF_name", "regulated_name", "regulatory_effect"]]
+    return tf_tf_df.loc[:, ["TF_name", "regulated_name", "regulatory_effect"]]
 
 
 ########################################################################################################################

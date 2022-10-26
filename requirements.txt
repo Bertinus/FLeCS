@@ -1,8 +1,0 @@
-matplotlib
-networkx
-numpy
-scipy
-torch
-pandas
-torch_scatter
-torchdiffeq
