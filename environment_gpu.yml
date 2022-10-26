@@ -11,6 +11,7 @@ dependencies:
   - numpy >=1.21.2
   - pandas >=1.3.4
   - pyg::pytorch-scatter
+  - python >= 3.10
   - pytorch >=1.12.1
   - scipy >=1.7.1
   - torchdiffeq >=0.2.2
