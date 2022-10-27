@@ -1,8 +1,8 @@
-import torch
 from abc import ABC, abstractmethod
-from flecs.node_set import NodeSet
 from flecs.edge_set import EdgeSet
+from flecs.node_set import NodeSet
 from typing import Tuple, Dict, Union
+import torch
 
 
 class CellPopulation(ABC):
@@ -130,13 +130,13 @@ class CellPopulation(ABC):
 
 
 if __name__ == '__main__':
-
-    from torch.distributions.normal import Normal
     from flecs.data.interaction_data import load_interaction_data
-    import torch_scatter
+    from flecs.decay import alpha_decay
+    from flecs.initializers import init_normal
+    from flecs.production import message_passing
     from flecs.trajectory import simulate_deterministic_trajectory
-    import matplotlib.pyplot as plt
     from flecs.utils import plot_trajectory
+    import matplotlib.pyplot as plt
 
     # Define your own Cell population object
     class TestCellPop(CellPopulation):
@@ -145,44 +145,40 @@ if __name__ == '__main__':
             Information about the test interaction data:
                 60 nodes and 57 edges.
                 2 different types of nodes: ['compound', 'gene'].
-                5 different types of interactions: ['', 'activation', 'binding/association', 'compound', 'inhibition'].
+                5 different types of interactions: ['', 'activation',
+                    'binding/association', 'compound', 'inhibition'].
             """
             interaction_graph = load_interaction_data("test")
             super().__init__(interaction_graph)
 
-            # Initialize additional node attributes
-            self['gene']['alpha'] = Normal(5, 0.01).sample((len(self['gene']),))
-            self['compound']['alpha'] = Normal(5, 0.01).sample((len(self['compound']),))
+            # Initialize additional node attributes.
+            init_normal(self, "gene", "alpha", 5, 0.01)
+            init_normal(self, "compound", "alpha", 5, 0.01)
 
-            # Initialize additional edge attributes
+            # Initialize additional edge attributes.
             for e_type in self.edge_types:
-                self[e_type]['weights'] = Normal(0, 1).sample((len(self[e_type]),))
+                init_normal(self, e_type, "weights", 0, 1)
+
+            self.decay_rates_fn = alpha_decay  # Define your own!
+            self.production_rate_fn = message_passing  # Define your own!
 
         def get_production_rates(self):
+            """Applies a generic production rate fn to each edge type individually."""
             self.set_production_rates_to_zero()
-
-            # Pass messages
             for e_type in self.edge_types:
-                src_type, interaction_type, tgt_type = e_type
-
-                parent_indices = self[e_type].tails
-                children_indices = self[e_type].heads
-
-                edge_messages = self[e_type]["weights"] * self[src_type].state[:, parent_indices]
-
-                torch_scatter.scatter(edge_messages, children_indices, dim=1, out=self[tgt_type].production_rate)
+                self.production_rate_fn(self, e_type)
 
             return self.production_rates
 
         def get_decay_rates(self):
+            """Applies a generic decay fn to each node type individually."""
             for n_type in self.node_types:
-                self[n_type].decay_rate = self[n_type]["alpha"] * self[n_type].state
+                self[n_type].decay_rate = self.decay_rates_fn(self, n_type)
 
             return self.decay_rates
 
 
-    # Let us try simulating trajectories
-
+    # Simulate trajectories.
     cell_pop = TestCellPop()
     cell_traj = simulate_deterministic_trajectory(cell_pop, torch.linspace(0, 1, 100))
 
