@@ -1,6 +1,6 @@
 # Interventions
 
-## Abstract class
+## Intervention abstract class
 
 ::: flecs.intervention.Intervention
     rendering:

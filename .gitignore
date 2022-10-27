@@ -1,6 +1,5 @@
 *.egg-info
 *.ipynb
-LINCS/raw/GSE*
-LINCS/raw/interactions.tsv
-RegNet
 .coverage
+.vscode
+__pycache__

@@ -1,13 +1,13 @@
 # Mutations
 
-## Abstract class
+## Mutation abstract class
 
 :::flecs.mutation.Mutation
     rendering:
       show_source: false
       heading_level: 3
 
-## Gaussian Mutations
+## Gaussian Mutation
 
 :::flecs.mutation.GaussianMutation
     rendering:

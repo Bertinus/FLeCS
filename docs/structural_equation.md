@@ -1,6 +1,6 @@
 # Structural Equations
 
-## StructuralEquation
+## StructuralEquation abstract class
 
 :::flecs.structural_equation.StructuralEquation
     rendering:

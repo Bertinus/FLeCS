@@ -1,10 +1,15 @@
 # FLeCS
 
-<!---
-![flecs_logo](docs/flecs_logo.png "Logo")
--->
-
 Flexible and Learnable Cell Simulator
+
+## QuickStart
+
+To install the conda environment, please run
+```
+conda env create -f environment.yml
+conda activate flecs
+pip install -e .
+```
 
 ## Documentation
 
