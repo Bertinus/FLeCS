@@ -49,6 +49,12 @@ class EdgeSet:
         assert value.shape[:2] == (1, len(self))
         self.attribute_dict[key] = value
 
+    def __getattr__(self, item):
+        if item in self.attribute_dict.keys():
+            return self.attribute_dict[item]
+        else:
+            raise AttributeError
+
     def keys(self):
         return self.attribute_dict.keys()
 
@@ -112,6 +118,11 @@ class EdgeSet:
 
     def in_edges(self, gene_idx: int):
         return self.edges[:, 1] == gene_idx
+
+    def init_param(self, name: str, dist: torch.distributions.Distribution, shape=None):
+        if shape is None:
+            shape = (len(self),)
+        self[name] = dist.sample(shape)
 
     def __len__(self):
         return len(self.edges)

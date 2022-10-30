@@ -66,12 +66,20 @@ class CellPopulation(ABC):
         return list(self._edge_set_dict.keys())
 
     @abstractmethod
-    def get_production_rates(self):
+    def compute_production_rates(self):
         pass
 
     @abstractmethod
-    def get_decay_rates(self):
+    def compute_decay_rates(self):
         pass
+
+    def get_production_rates(self):
+        self.compute_production_rates()
+        return self.production_rates
+
+    def get_decay_rates(self):
+        self.compute_decay_rates()
+        return self.decay_rates
 
     def get_derivatives(self, state):
         self.state = state
@@ -131,12 +139,14 @@ class CellPopulation(ABC):
 
 if __name__ == '__main__':
     from flecs.data.interaction_data import load_interaction_data
-    from flecs.decay import alpha_decay
-    from flecs.initializers import init_normal
+    from flecs.decay import exponential_decay
     from flecs.production import message_passing
     from flecs.trajectory import simulate_deterministic_trajectory
-    from flecs.utils import plot_trajectory
+    from flecs.utils import plot_trajectory, set_seed
     import matplotlib.pyplot as plt
+    from torch.distributions.normal import Normal
+
+    set_seed(0)
 
     # Define your own Cell population object
     class TestCellPop(CellPopulation):
@@ -152,30 +162,24 @@ if __name__ == '__main__':
             super().__init__(interaction_graph)
 
             # Initialize additional node attributes.
-            init_normal(self, "gene", "alpha", 5, 0.01)
-            init_normal(self, "compound", "alpha", 5, 0.01)
+            self["gene"].init_param(name="alpha", dist=Normal(5, 0.01))
+            self["compound"].init_param(name="alpha", dist=Normal(5, 0.01))
 
             # Initialize additional edge attributes.
             for e_type in self.edge_types:
-                init_normal(self, e_type, "weights", 0, 1)
+                self[e_type].init_param(name="weights", dist=Normal(0, 1))
 
-            self.decay_rates_fn = alpha_decay  # Define your own!
-            self.production_rate_fn = message_passing  # Define your own!
-
-        def get_production_rates(self):
+        def compute_production_rates(self):
             """Applies a generic production rate fn to each edge type individually."""
             self.set_production_rates_to_zero()
             for e_type in self.edge_types:
-                self.production_rate_fn(self, e_type)
+                tgt_n_type = e_type[2]
+                self[tgt_n_type].production_rate += message_passing(self, e_type, e_weights=self[e_type].weights)
 
-            return self.production_rates
-
-        def get_decay_rates(self):
+        def compute_decay_rates(self):
             """Applies a generic decay fn to each node type individually."""
             for n_type in self.node_types:
-                self[n_type].decay_rate = self.decay_rates_fn(self, n_type)
-
-            return self.decay_rates
+                self[n_type].decay_rate = exponential_decay(self, n_type, lambda_c=self[n_type].alpha)
 
 
     # Simulate trajectories.

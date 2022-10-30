@@ -49,6 +49,12 @@ class NodeSet:
         assert value.shape[:2] == (1, len(self))
         self.attribute_dict[key] = value
 
+    def __getattr__(self, item):
+        if item in self.attribute_dict.keys():
+            return self.attribute_dict[item]
+        else:
+            raise AttributeError
+
     def keys(self):
         return self.attribute_dict.keys()
 
@@ -78,6 +84,11 @@ class NodeSet:
     def production_rate(self, production_rate: torch.Tensor):
         assert production_rate.shape == self.production_rate.shape
         self._super_cell.production_rates[:, self.idx_low: self.idx_high + 1] = production_rate
+
+    def init_param(self, name: str, dist: torch.distributions.Distribution, shape=None):
+        if shape is None:
+            shape = (len(self),)
+        self[name] = dist.sample(shape)
 
     def __len__(self):
         return self.idx_high - self.idx_low + 1
