@@ -5,6 +5,7 @@ channels:
   - pyg
   - pytorch
 dependencies:
+  - pip >=22.2.2
   - conda-forge::biopython >=1.79
   - matplotlib
   - networkx >=2.6.3
