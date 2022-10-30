@@ -1,5 +1,5 @@
 """Functions for modelling decay processes in cells."""
 
 
-def alpha_decay(obj, node_type):
-    return obj[node_type]["alpha"] * obj[node_type].state
+def exponential_decay(obj, node_type, lambda_c=None):
+    return lambda_c * obj[node_type].state

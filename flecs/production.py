@@ -2,18 +2,19 @@
 import torch_scatter
 
 
-def message_passing(obj, e_type):
-
+def message_passing(obj, e_type, e_weights):
     src_type, interaction_type, tgt_type = e_type  # Unpack edge definition.
 
     parent_indices = obj[e_type].tails
     children_indices = obj[e_type].heads
 
-    edge_messages = obj[e_type]["weights"] * obj[src_type].state[:, parent_indices]
+    edge_messages = e_weights * obj[src_type].state[:, parent_indices]
 
-    torch_scatter.scatter(
+    out = torch_scatter.scatter(
         edge_messages,
         children_indices,
         dim=1,
-        out=obj[tgt_type].production_rate,
+        dim_size=obj[tgt_type].production_rate.shape[1]
     )
+
+    return out
