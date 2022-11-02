@@ -5,7 +5,7 @@ from typing import Tuple, Dict, Union
 from flecs.data.interaction_data import load_interaction_data
 from torch.distributions.normal import Normal
 from flecs.decay import exponential_decay
-from flecs.production import efficient_inplace_message_passing, SimpleConv, protein_rna_message_passing
+from flecs.production import SimpleConv
 import torch
 
 
@@ -186,7 +186,7 @@ class TestCellPop(CellPopulation):
                 x=self[src_n_type].state,
                 edge_index=self[e_type].edges.T,
                 edge_weight=self[e_type].weights,
-            )[:, :, 0]
+            )
 
     def compute_decay_rates(self):
         """Applies a generic decay fn to each node type individually."""
@@ -204,45 +204,67 @@ class ProteinRNACellPop(CellPopulation):
             2 different types of nodes: ['compound', 'gene'].
             5 different types of interactions: ['', 'activation',
                 'binding/association', 'compound', 'inhibition'].
+
+            The state of each node will be a 2D-vector, in which the first element corresponds
+            to the concentration fo RNA, and the second element to the concentration of protein.
         """
         interaction_graph = load_interaction_data("test")
         super().__init__(interaction_graph, n_cells=n_cells, per_node_state_dim=2)
 
         # Initialize additional node attributes.
-        self["gene"].init_param(name="alpha", dist=Normal(5, 1), shape=(1, len(self["gene"]), 2))
-        self["gene"].init_param(name="translation_rate", dist=Normal(5, 1), shape=(1, len(self["gene"]), 1))
+        self["gene"].init_param(
+            name="alpha", dist=Normal(5, 1), shape=(1, len(self["gene"]), 2)
+        )
+        self["gene"].init_param(
+            name="translation_rate", dist=Normal(5, 1), shape=(1, len(self["gene"]), 1)
+        )
 
-        self["compound"].init_param(name="alpha", dist=Normal(5, 0.01), shape=(1, len(self["compound"]), 2))
+        self["compound"].init_param(
+            name="alpha", dist=Normal(5, 0.01), shape=(1, len(self["compound"]), 2)
+        )
 
         # Initialize additional edge attributes.
         for e_type in self.edge_types:
             self[e_type].init_param(name="weights", dist=Normal(0, 1))
+            self[e_type].simple_conv = SimpleConv(tgt_nodeset_len=len(self[e_type[2]]))
 
     def compute_production_rates(self):
         """Applies a generic production rate fn to each edge type individually."""
         self.set_production_rates_to_zero()
 
         for e_type in self.edge_types:
+            src_n_type, interaction_type, tgt_n_type = e_type
+
             if e_type[0] == e_type[2] == "gene":  # Edges between genes
                 # RNA production depends on the concentration of parent proteins
-                tgt_n_type = e_type[2]
-                children_rna_prod_rate = self[tgt_n_type].production_rate[:, :, :1]
-                children_rna_prod_rate += protein_rna_message_passing(self, e_type, e_weights=self[e_type].weights)
+                rna_prod_rate = self["gene"].production_rate[:, :, 0:1]
+                protein_state = self["gene"].state[:, :, 1:2]
 
+                rna_prod_rate += self[e_type].simple_conv(
+                    x=protein_state,
+                    edge_index=self[e_type].edges.T,
+                    edge_weight=self[e_type].weights,
+                )
             else:
                 # Regular message passing
-                tgt_n_type = e_type[2]
-                self[tgt_n_type].production_rate += efficient_inplace_message_passing(self, e_type,
-                                                                                      e_weights=self[e_type].weights)
+                self[tgt_n_type].production_rate += self[e_type].simple_conv(
+                    x=self[src_n_type].state,
+                    edge_index=self[e_type].edges.T,
+                    edge_weight=self[e_type].weights,
+                )
 
         # Protein production depends on the concentration of the RNA coding for that protein
         protein_prod_rate = self["gene"].production_rate[:, :, 1:2]
-        protein_prod_rate += self["gene"].translation_rate
+        protein_prod_rate += (
+            self["gene"].translation_rate * self["gene"].state[:, :, 0:1]
+        )
 
     def compute_decay_rates(self):
         """Applies a generic decay fn to each node type individually."""
         for n_type in self.node_types:
-            self[n_type].decay_rate = exponential_decay(self, n_type, alpha=self[n_type].alpha)
+            self[n_type].decay_rate = exponential_decay(
+                self, n_type, alpha=self[n_type].alpha
+            )
 
 
 if __name__ == "__main__":
@@ -253,7 +275,7 @@ if __name__ == "__main__":
     set_seed(0)
 
     # Simulate trajectories.
-    cell_pop = TestCellPop()
+    cell_pop = ProteinRNACellPop()
     cell_traj = simulate_deterministic_trajectory(cell_pop, torch.linspace(0, 1, 100))
 
     plot_trajectory(cell_traj, legend=False)
