@@ -3,26 +3,28 @@ from typing import Dict
 
 
 class EdgeSet:
-    """???"""
-    def __init__(self, edges: torch.Tensor = None, attribute_dict: Dict[str, torch.Tensor] = None):
+    def __init__(
+        self,
+        edges: torch.Tensor = None,
+        attribute_dict: Dict[str, torch.Tensor] = None,
+    ):
         """
-        Class responsible for representing edges of a given type. An edge type is defined by a tuple
-        (source_node_type, interaction_type, target_node_type).
+        Class responsible for representing edges of a given type. An edge type is
+            defined by a tuple (source_node_type, interaction_type, target_node_type).
+            Examples of node types would be "gene", "codes", or "protein". Example
+            interaction types would be "inhibits", "facilitates".
 
-        Example:  ("gene", "codes", "protein").
-
-        Its attribute "state" points to a subset of the state of the cell "super_cell". The subset is defined by the
-        range [idx_low, idx_high] along the second axis.
-
-
-        Similarly, the decay_rate and production_rate attributes point to subsets of the corresponding attributes of
-        "super_cell".
+        The attribute `state` points to a subset of the state of the cell "super_cell".
+            The subset is defined by the range [idx_low, idx_high] along the second
+            axis. Similarly, the decay_rate and production_rate attributes point to
+            subsets of the corresponding attributes of "super_cell".
 
         Args:
             edges: shape (n_edges, 2).
-                The first column corresponds to the indices of the source nodes in cell[source_node_type].
-                The second column corresponds to the indices of the target nodes in cell[target_node_type].
-            attribute_dict:
+                The first column corresponds to the indices of the source nodes in
+                cell[source_node_type]. The second column corresponds to the indices of
+                the target nodes in cell[target_node_type].
+            attribute_dict: TODO?
         """
         if edges is None:
             edges = torch.zeros((0, 2)).long()
@@ -54,13 +56,22 @@ class EdgeSet:
 
     @property
     def tails(self):
+        """Returns children."""
         return self.edges[:, 0]
 
     @property
     def heads(self):
+        """Returns parents."""
         return self.edges[:, 1]
 
-    def add_edges(self, edges: torch.Tensor, attribute_dict: Dict[str, torch.Tensor] = None):
+    def add_edges(
+        self, edges: torch.Tensor, attribute_dict: Dict[str, torch.Tensor] = None
+    ):
+        """Adds provided edges with optional attibutes to the graph.
+        Args:
+            edges (tensor): A set of (src, target) pairs.
+            attribute_dict (dict): Optional attributes for each edge.
+        """
         if attribute_dict is None:
             attribute_dict = {}
 
@@ -80,11 +91,9 @@ class EdgeSet:
             )
 
     def remove_edges(self, indices: torch.Tensor):
-        """
+        """Removes edges specified by indices.
         Args:
             indices: shape (n_edges) boolean.
-
-        Returns:
         """
         to_be_kept = torch.logical_not(indices)
         self.edges = self.edges[to_be_kept]
@@ -93,11 +102,11 @@ class EdgeSet:
             self.attribute_dict[attr_name] = attr_value[:, to_be_kept]
 
     def get_edges(self, indices):
-        """
+        """Retrieves edges indexed by indices, with their attributes.
         Args:
             indices: shape (n_edges) boolean.
 
-        Returns:
+        Returns: (edges, attibutes) tuple, as indexed by `indices`.
         """
         edges = self.edges[indices]
 
@@ -117,4 +126,4 @@ class EdgeSet:
         return len(self.edges)
 
     def __repr__(self):
-        return "EdgeSet(" + str(self.edges) + ", " + str(self.attribute_dict) + ")"
+        return "EdgeSet({}, {})".format(str(self.edges), str(self.attribute_dict))
