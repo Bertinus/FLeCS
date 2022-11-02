@@ -97,6 +97,11 @@ class NodeSet:
             shape = (len(self),)
         self[name] = dist.sample(shape)
 
+    def init_param(self, name: str, dist: torch.distributions.Distribution, shape=None):
+        if shape is None:
+            shape = (len(self),)
+        self[name] = dist.sample(shape)
+
     def __len__(self):
         return self.idx_high - self.idx_low + 1
 
