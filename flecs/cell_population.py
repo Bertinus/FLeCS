@@ -5,7 +5,7 @@ from typing import Tuple, Dict, Union
 from flecs.data.interaction_data import load_interaction_data
 from torch.distributions.normal import Normal
 from flecs.decay import exponential_decay
-from flecs.production import message_passing
+from flecs.production import efficient_inplace_message_passing, SimpleConv
 import torch
 
 
@@ -175,21 +175,28 @@ class TestCellPop(CellPopulation):
         # Initialize additional edge attributes.
         for e_type in self.edge_types:
             self[e_type].init_param(name="weights", dist=Normal(0, 1))
+            self[e_type].simple_conv = SimpleConv(tgt_nodeset_len=len(self[e_type[2]]))
 
     def compute_production_rates(self):
         """Applies a generic production rate fn to each edge type individually."""
         self.set_production_rates_to_zero()
         for e_type in self.edge_types:
-            tgt_n_type = e_type[2]
-            self[tgt_n_type].production_rate += message_passing(self, e_type, e_weights=self[e_type].weights)
+            src_n_type, interaction_type, tgt_n_type = e_type
+            self[tgt_n_type].production_rate += self[e_type].simple_conv(
+                x=self[src_n_type].state,
+                edge_index=self[e_type].edges.T,
+                edge_weight=self[e_type].weights,
+            )[:, :, 0]
 
     def compute_decay_rates(self):
         """Applies a generic decay fn to each node type individually."""
         for n_type in self.node_types:
-            self[n_type].decay_rate = exponential_decay(self, n_type, lambda_c=self[n_type].alpha)
+            self[n_type].decay_rate = exponential_decay(
+                self, n_type, alpha=self[n_type].alpha
+            )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from flecs.trajectory import simulate_deterministic_trajectory
     from flecs.utils import plot_trajectory, set_seed
     import matplotlib.pyplot as plt

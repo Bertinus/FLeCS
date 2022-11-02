@@ -17,3 +17,4 @@ dependencies:
   - scipy >=1.7.1
   - torchdiffeq >=0.2.2
   - nomkl
+  - conda-forge::pytorch_geometric >=2.1.0
