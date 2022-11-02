@@ -32,7 +32,11 @@ class Intervention(ABC):
 
 
 class CrisprIntervention(Intervention):
-    def __init__(self, cells: CellPopulation, e_type: Tuple[str, str, str] = ('gene', 'activation', 'gene')):
+    def __init__(
+        self,
+        cells: CellPopulation,
+        e_type: Tuple[str, str, str] = ("gene", "activation", "gene"),
+    ):
         self.cells = cells
         self.e_type = e_type
         self.intervened_edges: Dict[int, tuple] = {}
@@ -44,7 +48,9 @@ class CrisprIntervention(Intervention):
         out_edges_indices = self.cells[self.e_type].out_edges(gene)
 
         # Save the removed edges
-        self.intervened_edges[gene] = self.cells[self.e_type].get_edges(out_edges_indices)
+        self.intervened_edges[gene] = self.cells[self.e_type].get_edges(
+            out_edges_indices
+        )
 
         # Remove edges from the CellPopulation object
         self.cells[self.e_type].remove_edges(out_edges_indices)
@@ -54,7 +60,7 @@ class CrisprIntervention(Intervention):
             self.cells[self.e_type].add_edges(*self.intervened_edges[gene])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     from flecs.trajectory import simulate_deterministic_trajectory
     from flecs.utils import plot_trajectory, set_seed
     import matplotlib.pyplot as plt
