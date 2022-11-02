@@ -130,7 +130,7 @@ class EdgeSet:
 
     def init_param(self, name: str, dist: torch.distributions.Distribution, shape=None):
         if shape is None:
-            shape = (len(self),)
+            shape = (1, len(self), 1)
         self[name] = dist.sample(shape)
 
     def __len__(self):
