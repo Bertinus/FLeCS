@@ -10,9 +10,9 @@ class TrainableTestCellPop(TestCellPop, torch.nn.Module):
         flecs.cell_population.TestCellPop.__init__(self)
         torch.nn.Module.__init__(self)
 
-        self["gene"]["alpha"] = torch.nn.Parameter(self["gene"]["alpha"])
+        self["gene"].alpha = torch.nn.Parameter(self["gene"].alpha)
 
-        self.parameter_list = torch.nn.ParameterList([self["gene"]["alpha"]])
+        self.parameter_list = torch.nn.ParameterList([self["gene"].alpha])
 
 
 set_seed(0)
