@@ -11,7 +11,7 @@
         <link rel="canonical" href="https://bertinus.github.io/trajectory/">
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.15">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.5.2">
     
     
       
@@ -19,12 +19,14 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.c382b1dc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.9f9400aa.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.cc9b2e1e.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.cbb835fc.min.css">
         
       
+      
+
     
     
     
@@ -39,10 +41,11 @@
     
       <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
+    
     
     
   </head>
@@ -119,7 +122,7 @@
       </label>
       <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
         </button>
       </nav>
@@ -197,8 +200,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../grn/" class="md-nav__link">
-        Gene Regulatory Networks
+      <a href="../cell_population/" class="md-nav__link">
+        Cell Population
       </a>
     </li>
   
@@ -212,23 +215,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../structural_equation/" class="md-nav__link">
-        Structural Equations
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../cell/" class="md-nav__link">
-        Cell
+      <a href="../sets/" class="md-nav__link">
+        Sets
       </a>
     </li>
   
@@ -351,38 +339,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../mutation/" class="md-nav__link">
-        Mutations
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../intervention/" class="md-nav__link">
         Interventions
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../parameter/" class="md-nav__link">
-        Parameters
       </a>
     </li>
   
@@ -497,138 +455,166 @@
               </div>
             
           
-          <div class="md-content" data-md-component="content">
-            <article class="md-content__inner md-typeset">
-              
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
                 
+                  
 
 
 <h1 id="trajectories">Trajectories</h1>
 <h2 id="determistic-trajectory-with-eulers-method">Determistic Trajectory with Euler's method</h2>
 
 
-  <div class="doc doc-object doc-function">
+<div class="doc doc-object doc-function">
+
 
 <a id="flecs.trajectory.simulate_deterministic_trajectory_euler_steps"></a>
-    <div class="doc doc-contents first">
-
-      <p>Simulates the deterministic trajectory of the cell using Euler's method:
+  <div class="doc doc-contents first">
+  
+      <p>Simulates the deterministic trajectory of the cells using Euler's method:
 $$
 \operatorname{state}(t + \Delta t) = \operatorname{state}(t) + {d \operatorname{state} \over dt} \Delta t.
 $$</p>
 
-<p><strong>Parameters:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Type</th>
-      <th>Description</th>
-      <th>Default</th>
-    </tr>
-  </thead>
-  <tbody>
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
       <tr>
-        <td><code>cell</code></td>
-        <td><code>Cell</code></td>
-        <td><p>Cell.</p></td>
-        <td><em>required</em></td>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
       </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>cells</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="flecs.cell_population.CellPopulation" href="../cell_population/#flecs.cell_population.CellPopulation">CellPopulation</a></code>
+          </td>
+          <td><p>CellPopulation.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>time_range</code></td>
+          <td>
+                <code>1D torch.Tensor</code>
+          </td>
+          <td><p>Time points at which the cells state should be evaluated.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
       <tr>
-        <td><code>time_range</code></td>
-        <td><code>1D torch.Tensor</code></td>
-        <td><p>Time points at which the cell state should be evaluated.</p></td>
-        <td><em>required</em></td>
+        <th>Type</th>
+        <th>Description</th>
       </tr>
-  </tbody>
-</table>
-<p><strong>Returns:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>torch.Tensor</code></td>
-      <td><p>Trajectory of shape (n_time_points, n_cells, n_nodes, *state_dim)</p></td>
-    </tr>
-  </tbody>
-</table>
-    </div>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p>torch.Tensor: Trajectory of shape (n_time_points, n_cells, n_genes, *state_dim)</p></td>
+        </tr>
+    </tbody>
+  </table>
 
   </div>
 
-<h2 id="determistic-trajectory-with-solver">Determistic Trajectory with solver</h2>
+</div><h2 id="determistic-trajectory-with-solver">Determistic Trajectory with solver</h2>
 
 
-  <div class="doc doc-object doc-function">
+<div class="doc doc-object doc-function">
+
 
 <a id="flecs.trajectory.simulate_deterministic_trajectory"></a>
-    <div class="doc doc-contents first">
+  <div class="doc doc-contents first">
+  
+      <p>Simulates the deterministic trajectory of the cells using the <code>torchdiffeq</code> solver.</p>
 
-      <p>Simulates the deterministic trajectory of the cell using the <code>torchdiffeq</code> solver.</p>
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>cells</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="flecs.cell_population.CellPopulation" href="../cell_population/#flecs.cell_population.CellPopulation">CellPopulation</a></code>
+          </td>
+          <td><p>CellPopulation.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>time_range</code></td>
+          <td>
+                <code>1D torch.Tensor</code>
+          </td>
+          <td><p>Time points at which the cells state should be evaluated.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>method</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>argument for the solver.</p></td>
+          <td>
+                <code>&#39;dopri5&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
 
-<p><strong>Parameters:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Type</th>
-      <th>Description</th>
-      <th>Default</th>
-    </tr>
-  </thead>
-  <tbody>
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
       <tr>
-        <td><code>cell</code></td>
-        <td><code>Cell</code></td>
-        <td><p>Cell.</p></td>
-        <td><em>required</em></td>
+        <th>Type</th>
+        <th>Description</th>
       </tr>
-      <tr>
-        <td><code>time_range</code></td>
-        <td><code>1D torch.Tensor</code></td>
-        <td><p>Time points at which the cell state should be evaluated.</p></td>
-        <td><em>required</em></td>
-      </tr>
-      <tr>
-        <td><code>method</code></td>
-        <td><code>str</code></td>
-        <td><p>argument for the solver.</p></td>
-        <td><code>&#39;dopri5&#39;</code></td>
-      </tr>
-  </tbody>
-</table>
-<p><strong>Returns:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>torch.Tensor</code></td>
-      <td><p>Trajectory of shape (n_time_points, n_cells, n_nodes, *state_dim)</p></td>
-    </tr>
-  </tbody>
-</table>
-    </div>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p>torch.Tensor: Trajectory of shape (n_time_points, n_cells, n_genes, *state_dim)</p></td>
+        </tr>
+    </tbody>
+  </table>
 
   </div>
 
-<h2 id="stochastic-trajectory">Stochastic Trajectory</h2>
+</div><h2 id="stochastic-trajectory">Stochastic Trajectory</h2>
 
 
-  <div class="doc doc-object doc-function">
+<div class="doc doc-object doc-function">
+
 
 <a id="flecs.trajectory.simulate_stochastic_trajectory"></a>
-    <div class="doc doc-contents first">
-
+  <div class="doc doc-contents first">
+  
       <p>Simulates stochastic trajectories of the cell using the tau-leaping method, which is a variation of
 the Gillespie algorithm:
 $$
@@ -637,63 +623,81 @@ $$
 - \operatorname{Pois}[\Delta t \cdot (\operatorname{decay rates})].
 $$</p>
 
-<p><strong>Parameters:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Type</th>
-      <th>Description</th>
-      <th>Default</th>
-    </tr>
-  </thead>
-  <tbody>
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
       <tr>
-        <td><code>cell</code></td>
-        <td><code>Cell</code></td>
-        <td><p>Cell.</p></td>
-        <td><em>required</em></td>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
       </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>cells</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="flecs.cell_population.CellPopulation" href="../cell_population/#flecs.cell_population.CellPopulation">CellPopulation</a></code>
+          </td>
+          <td><p>CellPopulation.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>time_range</code></td>
+          <td>
+                <code>1D torch.Tensor</code>
+          </td>
+          <td><p>Time points at which the cells state should be evaluated.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
       <tr>
-        <td><code>time_range</code></td>
-        <td><code>1D torch.Tensor</code></td>
-        <td><p>Time points at which the cell state should be evaluated.</p></td>
-        <td><em>required</em></td>
+        <th>Type</th>
+        <th>Description</th>
       </tr>
-  </tbody>
-</table>
-<p><strong>Returns:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><code>torch.Tensor</code></td>
-      <td><p>Trajectory of shape (n_time_points, n_cells, n_nodes, *state_dim)</p></td>
-    </tr>
-  </tbody>
-</table>
-    </div>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+          </td>
+          <td><p>torch.Tensor: Trajectory of shape (n_time_points, n_cells, n_genes, *state_dim)</p></td>
+        </tr>
+    </tbody>
+  </table>
 
   </div>
 
-              
-            </article>
-          </div>
+</div>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
         </div>
         
       </main>
       
         <footer class="md-footer">
   
-    <nav class="md-footer__inner md-grid" aria-label="Footer">
+    
+    <nav class="md-footer__inner md-grid" aria-label="Footer" >
       
         
-        <a href="../cell/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Cell" rel="prev">
+        <a href="../sets/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Sets" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
           </div>
@@ -702,20 +706,20 @@ $$</p>
               <span class="md-footer__direction">
                 Previous
               </span>
-              Cell
+              Sets
             </div>
           </div>
         </a>
       
       
         
-        <a href="../mutation/" class="md-footer__link md-footer__link--next" aria-label="Next: Mutations" rel="next">
+        <a href="../intervention/" class="md-footer__link md-footer__link--next" aria-label="Next: Interventions" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Mutations
+              Interventions
             </div>
           </div>
           <div class="md-footer__button md-icon">
@@ -745,10 +749,11 @@ $$</p>
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.2a1c317c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.ecf98df9.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.a6c66575.min.js"></script>
+      <script src="../assets/javascripts/bundle.39f04ddb.min.js"></script>
       
         <script src="../javascripts/mathjax.js"></script>
       

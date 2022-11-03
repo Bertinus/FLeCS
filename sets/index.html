@@ -8,14 +8,14 @@
       
       
       
-        <link rel="canonical" href="https://bertinus.github.io/intervention/">
+        <link rel="canonical" href="https://bertinus.github.io/sets/">
       
       <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.5.2">
     
     
       
-        <title>Interventions - FLeCS</title>
+        <title>Sets - FLeCS</title>
       
     
     
@@ -66,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#interventions" class="md-skip">
+        <a href="#sets" class="md-skip">
           Skip to content
         </a>
       
@@ -99,7 +99,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Interventions
+              Sets
             
           </span>
         </div>
@@ -213,11 +213,134 @@
 
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../sets/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Sets
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         Sets
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#nodeset" class="md-nav__link">
+    NodeSet
+  </a>
+  
+    <nav class="md-nav" aria-label="NodeSet">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#flecs.node_set.NodeSet" class="md-nav__link">
+    flecs.node_set.NodeSet
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.node_set.NodeSet.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#edgeset" class="md-nav__link">
+    EdgeSet
+  </a>
+  
+    <nav class="md-nav" aria-label="EdgeSet">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#flecs.edge_set.EdgeSet" class="md-nav__link">
+    flecs.edge_set.EdgeSet
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.edge_set.EdgeSet.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.edge_set.EdgeSet.add_edges" class="md-nav__link">
+    add_edges()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.edge_set.EdgeSet.get_edges" class="md-nav__link">
+    get_edges()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.edge_set.EdgeSet.heads" class="md-nav__link">
+    heads()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.edge_set.EdgeSet.remove_edges" class="md-nav__link">
+    remove_edges()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.edge_set.EdgeSet.tails" class="md-nav__link">
+    tails()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -243,99 +366,11 @@
 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Interventions
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../intervention/" class="md-nav__link">
         Interventions
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#intervention-abstract-class" class="md-nav__link">
-    Intervention abstract class
-  </a>
-  
-    <nav class="md-nav" aria-label="Intervention abstract class">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#flecs.intervention.Intervention" class="md-nav__link">
-    flecs.intervention.Intervention
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#flecs.intervention.Intervention.intervene" class="md-nav__link">
-    intervene()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#flecs.intervention.Intervention.reset" class="md-nav__link">
-    reset()
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#knockout-intervention" class="md-nav__link">
-    Knockout Intervention
-  </a>
-  
-    <nav class="md-nav" aria-label="Knockout Intervention">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#flecs.intervention.CrisprIntervention" class="md-nav__link">
-    flecs.intervention.CrisprIntervention
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -382,30 +417,23 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#intervention-abstract-class" class="md-nav__link">
-    Intervention abstract class
+  <a href="#nodeset" class="md-nav__link">
+    NodeSet
   </a>
   
-    <nav class="md-nav" aria-label="Intervention abstract class">
+    <nav class="md-nav" aria-label="NodeSet">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#flecs.intervention.Intervention" class="md-nav__link">
-    flecs.intervention.Intervention
+  <a href="#flecs.node_set.NodeSet" class="md-nav__link">
+    flecs.node_set.NodeSet
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#flecs.intervention.Intervention.intervene" class="md-nav__link">
-    intervene()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#flecs.intervention.Intervention.reset" class="md-nav__link">
-    reset()
+  <a href="#flecs.node_set.NodeSet.__init__" class="md-nav__link">
+    __init__()
   </a>
   
 </li>
@@ -416,16 +444,58 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#knockout-intervention" class="md-nav__link">
-    Knockout Intervention
+  <a href="#edgeset" class="md-nav__link">
+    EdgeSet
   </a>
   
-    <nav class="md-nav" aria-label="Knockout Intervention">
+    <nav class="md-nav" aria-label="EdgeSet">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#flecs.intervention.CrisprIntervention" class="md-nav__link">
-    flecs.intervention.CrisprIntervention
+  <a href="#flecs.edge_set.EdgeSet" class="md-nav__link">
+    flecs.edge_set.EdgeSet
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.edge_set.EdgeSet.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.edge_set.EdgeSet.add_edges" class="md-nav__link">
+    add_edges()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.edge_set.EdgeSet.get_edges" class="md-nav__link">
+    get_edges()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.edge_set.EdgeSet.heads" class="md-nav__link">
+    heads()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.edge_set.EdgeSet.remove_edges" class="md-nav__link">
+    remove_edges()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.edge_set.EdgeSet.tails" class="md-nav__link">
+    tails()
   </a>
   
 </li>
@@ -450,20 +520,16 @@
                   
 
 
-<h1 id="interventions">Interventions</h1>
-<h2 id="intervention-abstract-class">Intervention abstract class</h2>
+<h1 id="sets">Sets</h1>
+<h2 id="nodeset">NodeSet</h2>
 
 
 <div class="doc doc-object doc-class">
 
 
-<a id="flecs.intervention.Intervention"></a>
+<a id="flecs.node_set.NodeSet"></a>
   <div class="doc doc-contents first">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="abc.ABC">ABC</span></code></p>
 
-  
-      <p>Abstract class responsible for intervening on cells, and resetting cells to their default states.</p>
 
 
 
@@ -483,62 +549,100 @@
 
 
 
-<h3 id="flecs.intervention.Intervention.intervene" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">intervene</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
-  </span>
+<h3 id="flecs.node_set.NodeSet.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">super_cell</span><span class="p">,</span> <span class="n">idx_low</span><span class="p">,</span> <span class="n">idx_high</span><span class="p">,</span> <span class="n">attribute_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 </h3>
 
 
   <div class="doc doc-contents ">
   
-      <p>Abstract method for intervening on cells.</p>
+      <p>Class responsible for representing nodes of a given type (e.g. "genes" or
+"protein complexes", "oligonucleotides", "small molecules").</p>
+<p>Its attribute "state" points to a subset of the state of the cell "super_cell".
+The subset is defined by the range [idx_low, idx_high] along the second axis.</p>
+<p>Similarly, the decay_rate and production_rate attributes point to subsets of the
+corresponding attributes of "super_cell".</p>
+<p>Multiple nodesets should <em>not</em> have overlapping idx ranges.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>super_cell</code></td>
+          <td>
+                <code>obj</code>
+          </td>
+          <td><p>The cell this NodeSet belongs to.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>idx_low</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Beginning index of this NodeSet in the NodeTensor.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>idx_high</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Ending index of this NodeSet in the NodeTensor. Note this code
+corrects for the fact that arrays are indexed using half intervals by
+adding +1 to idx_high for all operations.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>attribute_dict</code></td>
+          <td>
+                <code>dict</code>
+          </td>
+          <td><p>Dict of node attributes. Each node attribute is an
+array e.d., decay rate for each gene. This is done because for the ODE
+solver, the state of cell must be in a single tensor. We want the total
+state to encompass multiple nodesets, so we index the super cell so we
+can pass a nodeset tensor to the ODE solver.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
 
   </div>
 
 </div>
 
-<div class="doc doc-object doc-function">
-
-
-
-<h3 id="flecs.intervention.Intervention.reset" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">reset</span><span class="p">()</span></code>
-  
-  <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
-  </span>
-
-</h3>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Abstract method for resetting cells to their default state.</p>
-
-  </div>
-
-</div>
-
 
 
   </div>
 
   </div>
 
-</div><h2 id="knockout-intervention">Knockout Intervention</h2>
+</div><h2 id="edgeset">EdgeSet</h2>
 
 
 <div class="doc doc-object doc-class">
 
 
-<a id="flecs.intervention.CrisprIntervention"></a>
+<a id="flecs.edge_set.EdgeSet"></a>
   <div class="doc doc-contents first">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="flecs.intervention.Intervention" href="#flecs.intervention.Intervention">Intervention</a></code></p>
 
 
 
@@ -554,6 +658,247 @@
 
 
 
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="flecs.edge_set.EdgeSet.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attribute_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Class responsible for representing edges of a given type. An edge type is
+    defined by a tuple (source_node_type, interaction_type, target_node_type).
+    Examples of node types would be "gene", "codes", or "protein". Example
+    interaction types would be "inhibits", "facilitates".</p>
+<p>The attribute <code>state</code> points to a subset of the state of the cell "super_cell".
+    The subset is defined by the range [idx_low, idx_high] along the second
+    axis. Similarly, the decay_rate and production_rate attributes point to
+    subsets of the corresponding attributes of "super_cell".</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>edges</code></td>
+          <td>
+                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p>shape (n_edges, 2).
+The first column corresponds to the indices of the source nodes in
+cell[source_node_type]. The second column corresponds to the indices of
+the target nodes in cell[target_node_type].</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>attribute_dict</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, torch.<span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td><p>TODO?</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="flecs.edge_set.EdgeSet.add_edges" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">add_edges</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">attribute_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Adds provided edges with optional attibutes to the graph.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>edges</code></td>
+          <td>
+                <code>tensor</code>
+          </td>
+          <td><p>A set of (src, target) pairs.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>attribute_dict</code></td>
+          <td>
+                <code>dict</code>
+          </td>
+          <td><p>Optional attributes for each edge.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="flecs.edge_set.EdgeSet.get_edges" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_edges</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Retrieves edges indexed by indices, with their attributes.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>indices</code></td>
+          <td>
+          </td>
+          <td><p>shape (n_edges) boolean.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="flecs.edge_set.EdgeSet.heads" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">heads</span><span class="p">()</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns parents.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="flecs.edge_set.EdgeSet.remove_edges" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">remove_edges</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Removes edges specified by indices.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>indices</code></td>
+          <td>
+                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p>shape (n_edges) boolean.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="flecs.edge_set.EdgeSet.tails" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">tails</span><span class="p">()</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns children.</p>
+
+  </div>
+
+</div>
 
 
 
@@ -582,7 +927,7 @@
     <nav class="md-footer__inner md-grid" aria-label="Footer" >
       
         
-        <a href="../trajectory/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Trajectories" rel="prev">
+        <a href="../cell_population/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Cell Population" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
           </div>
@@ -591,20 +936,20 @@
               <span class="md-footer__direction">
                 Previous
               </span>
-              Trajectories
+              Cell Population
             </div>
           </div>
         </a>
       
       
         
-        <a href="../utils/" class="md-footer__link md-footer__link--next" aria-label="Next: Utils" rel="next">
+        <a href="../trajectory/" class="md-footer__link md-footer__link--next" aria-label="Next: Trajectories" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Utils
+              Trajectories
             </div>
           </div>
           <div class="md-footer__button md-icon">

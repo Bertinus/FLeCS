@@ -2,47 +2,32 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://bertinus.github.io/</loc>
-         <lastmod>2022-05-24</lastmod>
+         <lastmod>2022-11-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://bertinus.github.io/cell/</loc>
-         <lastmod>2022-05-24</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bertinus.github.io/grn/</loc>
-         <lastmod>2022-05-24</lastmod>
+         <loc>https://bertinus.github.io/cell_population/</loc>
+         <lastmod>2022-11-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://bertinus.github.io/intervention/</loc>
-         <lastmod>2022-05-24</lastmod>
+         <lastmod>2022-11-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://bertinus.github.io/mutation/</loc>
-         <lastmod>2022-05-24</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bertinus.github.io/parameter/</loc>
-         <lastmod>2022-05-24</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
-         <loc>https://bertinus.github.io/structural_equation/</loc>
-         <lastmod>2022-05-24</lastmod>
+         <loc>https://bertinus.github.io/sets/</loc>
+         <lastmod>2022-11-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://bertinus.github.io/trajectory/</loc>
-         <lastmod>2022-05-24</lastmod>
+         <lastmod>2022-11-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://bertinus.github.io/utils/</loc>
-         <lastmod>2022-05-24</lastmod>
+         <lastmod>2022-11-03</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>

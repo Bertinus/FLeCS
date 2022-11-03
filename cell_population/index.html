@@ -8,23 +8,25 @@
       
       
       
-        <link rel="canonical" href="https://bertinus.github.io/mutation/">
+        <link rel="canonical" href="https://bertinus.github.io/cell_population/">
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.15">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.5.2">
     
     
       
-        <title>Mutations - FLeCS</title>
+        <title>Cell Population - FLeCS</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.c382b1dc.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.9f9400aa.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.cc9b2e1e.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.cbb835fc.min.css">
         
       
+      
+
     
     
     
@@ -39,10 +41,11 @@
     
       <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
+    
     
     
   </head>
@@ -63,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#mutations" class="md-skip">
+        <a href="#cell-population" class="md-skip">
           Skip to content
         </a>
       
@@ -96,7 +99,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Mutations
+              Cell Population
             
           </span>
         </div>
@@ -119,7 +122,7 @@
       </label>
       <nav class="md-search__options" aria-label="Search">
         
-        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
         </button>
       </nav>
@@ -195,11 +198,141 @@
 
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../grn/" class="md-nav__link">
-        Gene Regulatory Networks
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Cell Population
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Cell Population
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#base-class" class="md-nav__link">
+    Base class
+  </a>
+  
+    <nav class="md-nav" aria-label="Base class">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#flecs.cell_population.CellPopulation" class="md-nav__link">
+    flecs.cell_population.CellPopulation
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.cell_population.CellPopulation.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.cell_population.CellPopulation.get_derivatives" class="md-nav__link">
+    get_derivatives()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.cell_population.CellPopulation.get_edge_set" class="md-nav__link">
+    get_edge_set()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.cell_population.CellPopulation.get_node_set" class="md-nav__link">
+    get_node_set()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.cell_population.CellPopulation.initialize_from_interaction_graph" class="md-nav__link">
+    initialize_from_interaction_graph()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#test-class" class="md-nav__link">
+    Test class
+  </a>
+  
+    <nav class="md-nav" aria-label="Test class">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#flecs.cell_population.TestCellPop" class="md-nav__link">
+    flecs.cell_population.TestCellPop
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.cell_population.TestCellPop.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.cell_population.TestCellPop.compute_decay_rates" class="md-nav__link">
+    compute_decay_rates()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.cell_population.TestCellPop.compute_production_rates" class="md-nav__link">
+    compute_production_rates()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -212,23 +345,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../structural_equation/" class="md-nav__link">
-        Structural Equations
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../cell/" class="md-nav__link">
-        Cell
+      <a href="../sets/" class="md-nav__link">
+        Sets
       </a>
     </li>
   
@@ -255,155 +373,10 @@
 
   
   
-    
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Mutations
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        Mutations
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#abstract-class" class="md-nav__link">
-    Abstract class
-  </a>
-  
-    <nav class="md-nav" aria-label="Abstract class">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#flecs.mutation.Mutation" class="md-nav__link">
-    flecs.mutation.Mutation
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#flecs.mutation.Mutation.duplicate_and_mutate_attribute" class="md-nav__link">
-    duplicate_and_mutate_attribute()
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#gaussian-mutations" class="md-nav__link">
-    Gaussian Mutations
-  </a>
-  
-    <nav class="md-nav" aria-label="Gaussian Mutations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#flecs.mutation.GaussianMutation" class="md-nav__link">
-    flecs.mutation.GaussianMutation
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#flecs.mutation.GaussianMutation.__init__" class="md-nav__link">
-    __init__()
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#bernoulli-mutation" class="md-nav__link">
-    Bernoulli Mutation
-  </a>
-  
-    <nav class="md-nav" aria-label="Bernoulli Mutation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#flecs.mutation.BernoulliMutation" class="md-nav__link">
-    flecs.mutation.BernoulliMutation
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#flecs.mutation.BernoulliMutation.__init__" class="md-nav__link">
-    __init__()
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
   
     <li class="md-nav__item">
       <a href="../intervention/" class="md-nav__link">
         Interventions
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../parameter/" class="md-nav__link">
-        Parameters
       </a>
     </li>
   
@@ -451,23 +424,51 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#abstract-class" class="md-nav__link">
-    Abstract class
+  <a href="#base-class" class="md-nav__link">
+    Base class
   </a>
   
-    <nav class="md-nav" aria-label="Abstract class">
+    <nav class="md-nav" aria-label="Base class">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#flecs.mutation.Mutation" class="md-nav__link">
-    flecs.mutation.Mutation
+  <a href="#flecs.cell_population.CellPopulation" class="md-nav__link">
+    flecs.cell_population.CellPopulation
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#flecs.mutation.Mutation.duplicate_and_mutate_attribute" class="md-nav__link">
-    duplicate_and_mutate_attribute()
+  <a href="#flecs.cell_population.CellPopulation.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.cell_population.CellPopulation.get_derivatives" class="md-nav__link">
+    get_derivatives()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.cell_population.CellPopulation.get_edge_set" class="md-nav__link">
+    get_edge_set()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.cell_population.CellPopulation.get_node_set" class="md-nav__link">
+    get_node_set()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flecs.cell_population.CellPopulation.initialize_from_interaction_graph" class="md-nav__link">
+    initialize_from_interaction_graph()
   </a>
   
 </li>
@@ -478,50 +479,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#gaussian-mutations" class="md-nav__link">
-    Gaussian Mutations
+  <a href="#test-class" class="md-nav__link">
+    Test class
   </a>
   
-    <nav class="md-nav" aria-label="Gaussian Mutations">
+    <nav class="md-nav" aria-label="Test class">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#flecs.mutation.GaussianMutation" class="md-nav__link">
-    flecs.mutation.GaussianMutation
+  <a href="#flecs.cell_population.TestCellPop" class="md-nav__link">
+    flecs.cell_population.TestCellPop
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#flecs.mutation.GaussianMutation.__init__" class="md-nav__link">
+  <a href="#flecs.cell_population.TestCellPop.__init__" class="md-nav__link">
     __init__()
   </a>
   
 </li>
         
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#bernoulli-mutation" class="md-nav__link">
-    Bernoulli Mutation
-  </a>
-  
-    <nav class="md-nav" aria-label="Bernoulli Mutation">
-      <ul class="md-nav__list">
-        
           <li class="md-nav__item">
-  <a href="#flecs.mutation.BernoulliMutation" class="md-nav__link">
-    flecs.mutation.BernoulliMutation
+  <a href="#flecs.cell_population.TestCellPop.compute_decay_rates" class="md-nav__link">
+    compute_decay_rates()
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#flecs.mutation.BernoulliMutation.__init__" class="md-nav__link">
-    __init__()
+  <a href="#flecs.cell_population.TestCellPop.compute_production_rates" class="md-nav__link">
+    compute_production_rates()
   </a>
   
 </li>
@@ -539,120 +527,29 @@
               </div>
             
           
-          <div class="md-content" data-md-component="content">
-            <article class="md-content__inner md-typeset">
-              
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
                 
+                  
 
 
-<h1 id="mutations">Mutations</h1>
-<h2 id="abstract-class">Abstract class</h2>
+<h1 id="cell-population">Cell Population</h1>
+<h2 id="base-class">Base class</h2>
 
 
-  <div class="doc doc-object doc-class">
-
-<a id="flecs.mutation.Mutation"></a>
-    <div class="doc doc-contents first">
-
-      <p>Abstract class responsible for applying mutations to cells.</p>
+<div class="doc doc-object doc-class">
 
 
-
-
-  <div class="doc doc-children">
+<a id="flecs.cell_population.CellPopulation"></a>
+  <div class="doc doc-contents first">
+      <p class="doc doc-class-bases">
+        Bases: <code><span title="abc.ABC">ABC</span></code></p>
 
 
 
 
-
-
-
-
-
-  <div class="doc doc-object doc-method">
-
-
-
-<h3 id="flecs.mutation.Mutation.duplicate_and_mutate_attribute" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">duplicate_and_mutate_attribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">,</span> <span class="n">attr_name</span><span class="p">)</span></code>
-
-
-</h3>
-
-    <div class="doc doc-contents ">
-
-      <p>Duplicates and mutates the attribute <code>attr_name</code>.</p>
-<p>The attribute is duplicated so that its first dimension matches <code>cell.n_cells</code>. After that, it is mutated to
-induce variations between cells.</p>
-
-<p><strong>Parameters:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Type</th>
-      <th>Description</th>
-      <th>Default</th>
-    </tr>
-  </thead>
-  <tbody>
-      <tr>
-        <td><code>cell</code></td>
-        <td><code>Cell</code></td>
-        <td><p>Cell.</p></td>
-        <td><em>required</em></td>
-      </tr>
-      <tr>
-        <td><code>attr_name</code></td>
-        <td><code>str</code></td>
-        <td><p>Name of the attribute.</p></td>
-        <td><em>required</em></td>
-      </tr>
-  </tbody>
-</table>
-    </div>
-
-  </div>
-
-
-
-
-
-  </div>
-
-    </div>
-
-  </div>
-
-<h2 id="gaussian-mutations">Gaussian Mutations</h2>
-
-
-  <div class="doc doc-object doc-class">
-
-<a id="flecs.mutation.GaussianMutation"></a>
-    <div class="doc doc-contents first">
-
-      <p>Class to apply mutations in the form of Gaussian noise.</p>
-
-<p><strong>Attributes:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-      <tr>
-        <td><code>noise_dist</code></td>
-        <td><code>torch.distributions.normal.Normal</code></td>
-        <td><p>Normal distribution to sample noise.</p></td>
-      </tr>
-  </tbody>
-</table>
-
-
+  
 
   <div class="doc doc-children">
 
@@ -664,84 +561,150 @@ induce variations between cells.</p>
 
 
 
-  <div class="doc doc-object doc-method">
+<div class="doc doc-object doc-function">
 
 
 
-<h3 id="flecs.mutation.GaussianMutation.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sigma</span><span class="p">)</span></code>
-
-  <span class="doc doc-properties">
-      <small class="doc doc-property doc-property-special"><code>special</code></small>
-  </span>
+<h3 id="flecs.cell_population.CellPopulation.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">interaction_graph</span><span class="p">,</span> <span class="n">n_cells</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">per_node_state_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></code>
 
 </h3>
 
-    <div class="doc doc-contents ">
 
+  <div class="doc doc-contents ">
+  
+      <p>A population of independnet cells (no cell-cell interactions).</p>
 
-<p><strong>Parameters:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Type</th>
-      <th>Description</th>
-      <th>Default</th>
-    </tr>
-  </thead>
-  <tbody>
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
       <tr>
-        <td><code>sigma</code></td>
-        <td><code>float</code></td>
-        <td><p>standard deviation of the Gaussian noise to be applied.</p></td>
-        <td><em>required</em></td>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
       </tr>
-  </tbody>
-</table>
-    </div>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>interaction_graph</code></td>
+          <td>
+          </td>
+          <td></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>n_cells</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Number of independent cells in the population.</p></td>
+          <td>
+                <code>1</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
 
   </div>
 
+</div>
 
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="flecs.cell_population.CellPopulation.get_derivatives" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_derivatives</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Estimates derivative of system using first differences.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="flecs.cell_population.CellPopulation.get_edge_set" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_edge_set</span><span class="p">(</span><span class="n">e_type</span><span class="p">,</span> <span class="n">e_type_data</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>"Given an edge type, and edge data, return an edge set.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="flecs.cell_population.CellPopulation.get_node_set" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_node_set</span><span class="p">(</span><span class="n">n_type_data</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Given node type data, return a node set with the associated attributes.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="flecs.cell_population.CellPopulation.initialize_from_interaction_graph" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">initialize_from_interaction_graph</span><span class="p">(</span><span class="n">interaction_graph</span><span class="p">)</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Initializes a graph from an <code>interaction_graph</code> object.</p>
+
+  </div>
+
+</div>
 
 
 
   </div>
 
-    </div>
-
   </div>
 
-<h2 id="bernoulli-mutation">Bernoulli Mutation</h2>
+</div><h2 id="test-class">Test class</h2>
 
 
-  <div class="doc doc-object doc-class">
-
-<a id="flecs.mutation.BernoulliMutation"></a>
-    <div class="doc doc-contents first">
-
-      <p>Class to apply mutations wherein each parametric element is set to zero with a probability <code>p</code>.</p>
-
-<p><strong>Attributes:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Type</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-      <tr>
-        <td><code>noise_dist</code></td>
-        <td><code>torch.distributions.bernoulli.Bernoulli</code></td>
-        <td><p>Bernoulli distribution to sample noise.</p></td>
-      </tr>
-  </tbody>
-</table>
+<div class="doc doc-object doc-class">
 
 
+<a id="flecs.cell_population.TestCellPop"></a>
+  <div class="doc doc-contents first">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="flecs.cell_population.CellPopulation" href="#flecs.cell_population.CellPopulation">CellPopulation</a></code></p>
+
+
+
+
+  
 
   <div class="doc doc-children">
 
@@ -753,68 +716,94 @@ induce variations between cells.</p>
 
 
 
-  <div class="doc doc-object doc-method">
+<div class="doc doc-object doc-function">
 
 
 
-<h3 id="flecs.mutation.BernoulliMutation.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span></code>
-
-  <span class="doc doc-properties">
-      <small class="doc doc-property doc-property-special"><code>special</code></small>
-  </span>
+<h3 id="flecs.cell_population.TestCellPop.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">n_cells</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></code>
 
 </h3>
 
-    <div class="doc doc-contents ">
+
+  <div class="doc doc-contents ">
+  
+
+<details class="information-about-the-test-interaction-data">
+  <summary>Information about the test interaction data</summary>
+  <p>60 nodes and 57 edges.
+2 different types of nodes: ['compound', 'gene'].
+5 different types of interactions: ['', 'activation',
+    'binding/association', 'compound', 'inhibition'].</p>
+</details>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
 
 
-<p><strong>Parameters:</strong></p>
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Type</th>
-      <th>Description</th>
-      <th>Default</th>
-    </tr>
-  </thead>
-  <tbody>
-      <tr>
-        <td><code>p</code></td>
-        <td><code>float</code></td>
-        <td><p>probability of being set to zero</p></td>
-        <td><em>required</em></td>
-      </tr>
-  </tbody>
-</table>
-    </div>
+
+<h3 id="flecs.cell_population.TestCellPop.compute_decay_rates" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">compute_decay_rates</span><span class="p">()</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Applies a generic decay fn to each node type individually.</p>
 
   </div>
 
+</div>
 
+<div class="doc doc-object doc-function">
+
+
+
+<h3 id="flecs.cell_population.TestCellPop.compute_production_rates" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">compute_production_rates</span><span class="p">()</span></code>
+
+</h3>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Applies a generic production rate fn to each edge type individually.</p>
+
+  </div>
+
+</div>
 
 
 
   </div>
 
-    </div>
-
   </div>
 
-              
-            </article>
-          </div>
+</div>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
         </div>
         
       </main>
       
         <footer class="md-footer">
   
-    <nav class="md-footer__inner md-grid" aria-label="Footer">
+    
+    <nav class="md-footer__inner md-grid" aria-label="Footer" >
       
         
-        <a href="../trajectory/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Trajectories" rel="prev">
+        <a href=".." class="md-footer__link md-footer__link--prev" aria-label="Previous: Home" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
           </div>
@@ -823,20 +812,20 @@ induce variations between cells.</p>
               <span class="md-footer__direction">
                 Previous
               </span>
-              Trajectories
+              Home
             </div>
           </div>
         </a>
       
       
         
-        <a href="../intervention/" class="md-footer__link md-footer__link--next" aria-label="Next: Interventions" rel="next">
+        <a href="../sets/" class="md-footer__link md-footer__link--next" aria-label="Next: Sets" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Interventions
+              Sets
             </div>
           </div>
           <div class="md-footer__button md-icon">
@@ -866,10 +855,11 @@ induce variations between cells.</p>
     <div class="md-dialog" data-md-component="dialog">
       <div class="md-dialog__inner md-typeset"></div>
     </div>
-    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.2a1c317c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.ecf98df9.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.a6c66575.min.js"></script>
+      <script src="../assets/javascripts/bundle.39f04ddb.min.js"></script>
       
         <script src="../javascripts/mathjax.js"></script>
       
