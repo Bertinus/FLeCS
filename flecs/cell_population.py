@@ -90,6 +90,11 @@ class CellPopulation(ABC):
         self.state = state
         return self.get_production_rates() - self.get_decay_rates()
 
+    def reset_state(self):
+        self.state = 10 * torch.ones(self.state.shape)
+        self.production_rates = torch.empty(self.production_rates.shape)
+        self.decay_rates = torch.empty(self.decay_rates.shape)
+
     def get_node_set(self, n_type_data):
         """Given node type data, return a node set with the associated attributes."""
         idx_low = int(min(n_type_data["idx"]))
