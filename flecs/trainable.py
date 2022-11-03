@@ -31,8 +31,12 @@ for _ in range(10):
     trainable_cellpop.reset_state()
 
     # Compute trajectories
-    gt_cell_traj = simulate_deterministic_trajectory(ground_truth_cellpop, torch.linspace(0, 1, 100))
-    tr_cell_traj = simulate_deterministic_trajectory(trainable_cellpop, torch.linspace(0, 1, 100))
+    gt_cell_traj = simulate_deterministic_trajectory(
+        ground_truth_cellpop, torch.linspace(0, 1, 100)
+    )
+    tr_cell_traj = simulate_deterministic_trajectory(
+        trainable_cellpop, torch.linspace(0, 1, 100)
+    )
 
     epoch_loss = loss(gt_cell_traj, tr_cell_traj)
     epoch_loss.backward()
