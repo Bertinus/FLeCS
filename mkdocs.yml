@@ -9,9 +9,9 @@ nav:
   - Interventions: intervention.md
   - Utils: utils.md
 
-theme:
-  name: "material"
-#theme: readthedocs
+#theme:
+#  name: "material"
+theme: readthedocs
 
 plugins:
   - search
