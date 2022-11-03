@@ -3,13 +3,10 @@ site_url: https://bertinus.github.io
 
 nav:
   - Home: index.md
-  - Gene Regulatory Networks: grn.md
-  - Structural Equations: structural_equation.md
-  - Cell: cell.md
+  - Cell Population: cell_population.md
+  - Sets: sets.md
   - Trajectories: trajectory.md
-  - Mutations: mutation.md
   - Interventions: intervention.md
-  - Parameters: parameter.md
   - Utils: utils.md
 
 theme:
