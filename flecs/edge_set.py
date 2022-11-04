@@ -14,13 +14,8 @@ class EdgeSet:
             Examples of node types would be "gene", "codes", or "protein". Example
             interaction types would be "inhibits", "facilitates".
 
-        The attribute `state` points to a subset of the state of the cell "super_cell".
-            The subset is defined by the range [idx_low, idx_high] along the second
-            axis. Similarly, the decay_rate and production_rate attributes point to
-            subsets of the corresponding attributes of "super_cell". E.g.,
-            key="weight", tensor of weights (one for each edge). Attribute Tensor
-            shape is [n_cells, n_edges, ...]. n_cells=1 is permissable for attributes
-            being shared across all cells.
+        An `attribute_dict` Tensor shape is [n_cells, n_edges, ...]. n_cells=1 is
+            permissable for attributes being shared across all cells.
 
         Args:
             edges: shape (n_edges, 2).
