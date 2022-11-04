@@ -2,7 +2,7 @@ import torch
 from typing import Dict
 
 
-class EdgeSet:
+class EdgeSet(torch.nn.Module):
     def __init__(
         self,
         edges: torch.Tensor = None,
@@ -25,6 +25,7 @@ class EdgeSet:
             attribute_dict: str attribute and Tensor of associated per-edge values. The
                 tensor.
         """
+        super().__init__()
         if edges is None:
             edges = torch.zeros((0, 2)).long()
         if attribute_dict is None:
@@ -54,7 +55,12 @@ class EdgeSet:
         if item in self.attribute_dict.keys():
             return self.attribute_dict[item]
         else:
-            raise AttributeError
+            return super().__getattr__(item)
+
+    def __setattr__(self, key, value):
+        if isinstance(value, torch.nn.Parameter) and key in self.attribute_dict:
+            del self.attribute_dict[key]
+        super().__setattr__(key, value)
 
     def keys(self):
         return self.attribute_dict.keys()
@@ -131,6 +137,13 @@ class EdgeSet:
         if shape is None:
             shape = (1, len(self), 1)
         self[name] = dist.sample(shape)
+
+    def parameters(self, recurse: bool = True):
+        for k, param in self.attribute_dict.items():
+            if isinstance(param, torch.nn.Parameter):
+                yield param
+        for name, param in self.named_parameters(recurse=recurse):
+            yield param
 
     def __len__(self):
         return len(self.edges)
