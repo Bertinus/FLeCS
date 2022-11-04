@@ -1,15 +1,16 @@
-# Gene Regulatory Networks
+# Sets
 
-## GRN abstract class
+## NodeSet
 
-::: flecs.grn.GRN
+::: flecs.node_set.NodeSet
     rendering:
       show_source: false
       heading_level: 3
 
-## Random GRN
 
-::: flecs.grn.RandomGRN
+## EdgeSet
+
+::: flecs.edge_set.EdgeSet
     rendering:
       show_source: false
       heading_level: 3

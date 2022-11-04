@@ -9,14 +9,7 @@
 
 ## Knockout Intervention
 
-::: flecs.intervention.KnockoutIntervention
-    rendering:
-      show_source: false
-      heading_level: 3
-
-## Drug Linear Intervention
-
-:::flecs.intervention.DrugLinearIntervention
+::: flecs.intervention.CrisprIntervention
     rendering:
       show_source: false
       heading_level: 3

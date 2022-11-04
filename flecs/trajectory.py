@@ -59,9 +59,7 @@ def simulate_deterministic_trajectory(
         return cells.get_derivatives(state)
 
     # Simulate trajectory
-    trajectory = odeint(
-        derivatives_for_solver, cells.state, time_range, method=method
-    )
+    trajectory = odeint(derivatives_for_solver, cells.state, time_range, method=method)
 
     return trajectory
 

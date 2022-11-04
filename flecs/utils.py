@@ -5,7 +5,7 @@ import numpy as np
 import torch
 
 
-def get_project_root() -> str:
+def get_project_root() -> Path:
     """
     Returns:
         str: Path to the root of the project.
