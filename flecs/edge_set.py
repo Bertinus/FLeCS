@@ -14,17 +14,16 @@ class EdgeSet:
             Examples of node types would be "gene", "codes", or "protein". Example
             interaction types would be "inhibits", "facilitates".
 
-        The attribute `state` points to a subset of the state of the cell "super_cell".
-            The subset is defined by the range [idx_low, idx_high] along the second
-            axis. Similarly, the decay_rate and production_rate attributes point to
-            subsets of the corresponding attributes of "super_cell".
+        An `attribute_dict` Tensor shape is [n_cells, n_edges, ...]. n_cells=1 is
+            permissable for attributes being shared across all cells.
 
         Args:
             edges: shape (n_edges, 2).
                 The first column corresponds to the indices of the source nodes in
                 cell[source_node_type]. The second column corresponds to the indices of
                 the target nodes in cell[target_node_type].
-            attribute_dict: TODO?
+            attribute_dict: str attribute and Tensor of associated per-edge values. The
+                tensor.
         """
         if edges is None:
             edges = torch.zeros((0, 2)).long()
