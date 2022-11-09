@@ -9,7 +9,8 @@ import os
 from flecs.utils import get_project_root
 from typing import Set, List, Dict, Union, Tuple
 from flecs.data.calcium_signaling_pathway import load_calcium_signaling_pathway
-from flecs.data.grn_db_loaders import get_realnet_graph, get_regulondb_graph
+from flecs.data.grn_db_loaders import (
+    get_realnet_graph, get_regulondb_graph, get_string_graph)
 from flecs.data.random_graph import get_graph_from_adj_mat, get_random_adjacency_mat
 
 # Base types
@@ -394,6 +395,7 @@ def load_interaction_data(
         "regulon_db",
         "encode",
         "fantom5",
+        "string",
         "random",
     ]
 
@@ -460,6 +462,16 @@ def load_interaction_data(
         )
         return InteractionGraph(fantom5_graph)
 
+    elif interaction_type == "string":
+        string_graph = get_string_graph(path_to_file=os.path.join(
+            "STRING",
+            "9606.protein.physical.links.detailed.v11.5.txt.gz"
+            ),
+        experimental_only=False,
+        subsample_edge_prop=subsample_edge_prop,
+        )
+        return InteractionGraph(string_graph)
+
     elif interaction_type == "random":
         assert n_nodes is not None, "Please specify 'n_nodes'."
         assert avg_num_parents is not None, "Please specify 'avg_num_parents'."
@@ -507,6 +519,7 @@ def main():
             ).__repr__()
         )
     )
+
     print(
         "fantom5: {}".format(
             load_interaction_data(
@@ -517,6 +530,16 @@ def main():
             ).__repr__()
         )
     )
+
+    print(
+        "string: {}".format(
+            load_interaction_data(
+                "string",
+                subsample_edge_prop=0.5,
+            ).__repr__()
+        )
+    )
+
     print(
         "random: {}".format(
             load_interaction_data("random", n_nodes=10, avg_num_parents=3).__repr__()
