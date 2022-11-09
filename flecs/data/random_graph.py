@@ -41,8 +41,14 @@ def get_random_adjacency_mat(n_nodes, avg_num_parents):
     :param avg_num_parents: Average number of parents for each node
     :return: Numpy array of shape (n_nodes, n_nodes)
     """
-    adj_mat = np.random.choice([0, 1], size=(n_nodes, n_nodes), p=[
-        float(n_nodes - avg_num_parents) / n_nodes, float(avg_num_parents) / n_nodes])
+    adj_mat = np.random.choice(
+        [0, 1],
+        size=(n_nodes, n_nodes),
+        p=[
+            float(n_nodes - avg_num_parents) / n_nodes,
+            float(avg_num_parents) / n_nodes,
+        ],
+    )
 
     # Make sure that each gene has at least one parent
     for j in range(n_nodes):
