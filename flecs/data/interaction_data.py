@@ -10,7 +10,10 @@ from flecs.utils import get_project_root
 from typing import Set, List, Dict, Union, Tuple
 from flecs.data.calcium_signaling_pathway import load_calcium_signaling_pathway
 from flecs.data.grn_db_loaders import (
-    get_realnet_graph, get_regulondb_graph, get_string_graph)
+    get_realnet_graph,
+    get_regulondb_graph,
+    get_string_graph,
+)
 from flecs.data.random_graph import get_graph_from_adj_mat, get_random_adjacency_mat
 
 # Base types
@@ -463,12 +466,12 @@ def load_interaction_data(
         return InteractionGraph(fantom5_graph)
 
     elif interaction_type == "string":
-        string_graph = get_string_graph(path_to_file=os.path.join(
-            "STRING",
-            "9606.protein.physical.links.detailed.v11.5.txt.gz"
+        string_graph = get_string_graph(
+            path_to_file=os.path.join(
+                "STRING", "9606.protein.physical.links.detailed.v11.5.txt.gz"
             ),
-        experimental_only=False,
-        subsample_edge_prop=subsample_edge_prop,
+            experimental_only=False,
+            subsample_edge_prop=subsample_edge_prop,
         )
         return InteractionGraph(string_graph)
 
@@ -489,6 +492,7 @@ def main():
         )
     )
     print("regulon_db: {}".format(load_interaction_data("regulon_db").__repr__()))
+
     print(
         "regulon_db: {}".format(
             load_interaction_data("regulon_db", tf_only=True).__repr__()
@@ -496,6 +500,7 @@ def main():
     )
     print("encode: {}".format(load_interaction_data("encode").__repr__()))
     print("encode: {}".format(load_interaction_data("encode", tf_only=True).__repr__()))
+
     print(
         "encode: {}".format(
             load_interaction_data(
@@ -503,6 +508,7 @@ def main():
             ).__repr__()
         )
     )
+
     print(
         "fantom5: {}".format(
             load_interaction_data(
@@ -510,6 +516,7 @@ def main():
             ).__repr__()
         )
     )
+
     print(
         "fantom5: {}".format(
             load_interaction_data(
