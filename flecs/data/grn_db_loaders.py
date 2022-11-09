@@ -301,7 +301,7 @@ def get_string_graph(
     path_to_file,
     experimental_only=True,
     subsample_edge_prop=1,
-    ):
+):
     """
     Initializes a networkx directed graph based on the STRING database.
     :return: Directed networkx graph with 'is_TF' node attributes (value in [0, 1])
@@ -349,8 +349,3 @@ def get_string_graph(
     )
 
     return graph
-
-
-if __name__ == "__main__":
-    from flecs.data.interaction_data import load_interaction_data
-    load_interaction_data("string")
