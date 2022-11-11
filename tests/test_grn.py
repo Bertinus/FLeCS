@@ -2,13 +2,12 @@ import networkx as nx
 import pytest
 import torch
 
-from flecs.grn import RandomGRN
+from flecs.cell_population import TestCellPop
 
 
 @pytest.fixture
-def my_grn():
-    grn = RandomGRN(n_genes=10, av_num_parents=3)
-    return grn
+def my_cells():
+    return TestCellPop()
 
 
 def test_initialize_graph(my_grn):

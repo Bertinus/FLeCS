@@ -3,10 +3,9 @@ import torch
 from torch.distributions.gamma import Gamma
 from torch.distributions.normal import Normal
 
-from flecs.cell_population import CellPopulation
-from flecs.grn import RandomGRN
-from flecs.attribute import EdgeAttribute, GeneAttribute
-from flecs.structural_equation import SigmoidLinearSE
+from flecs.cell_population import CellPopulation, TestCellPop
+from flecs.edge_set import EdgeSet
+from flecs.node_set import NodeSet
 from flecs.trajectory import (
     simulate_deterministic_trajectory,
     simulate_deterministic_trajectory_euler_steps,
@@ -17,17 +16,7 @@ from flecs.utils import plot_trajectory
 
 @pytest.fixture
 def my_cells():
-    grn = RandomGRN(10, 3)
-    linear_se = SigmoidLinearSE(
-        gene_decay=GeneAttribute(dim=(1,), prior_dist=Gamma(10, 10)),
-        weights=EdgeAttribute(dim=(1,), prior_dist=Normal(1, 1)),
-    )
-
-    cells = CellPopulation(grn=grn, structural_equation=linear_se)
-
-    cells.state = 10 * torch.ones((1, 10, 1))
-
-    return cells
+    pass
 
 
 def test_simulate_deterministic_trajectory(my_cells):
