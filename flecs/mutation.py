@@ -1,125 +1,76 @@
-from abc import ABC, abstractmethod
-
-import torch
 from torch.distributions.bernoulli import Bernoulli
 from torch.distributions.normal import Normal
 
 from flecs.cell_population import CellPopulation
+from flecs.sets import NodeSet
+from flecs.sets import EdgeSet
+
+from typing import Union
 
 ########################################################################################################################
 # Mutation Abstract class
 ########################################################################################################################
 
 
-class Mutation(ABC):
-    """
-    Abstract class responsible for applying mutations to cells.
-    """
+def duplicate_attribute(obj: Union[CellPopulation, NodeSet, EdgeSet], attr_name: str, n_cells: int):
 
-    def duplicate_and_mutate_attribute(self, cells: CellPopulation, attr_name: str):
-        """
-        Duplicates and mutates the attribute ``attr_name``.
+    assert n_cells > 1
 
-        The attribute is duplicated so that its first dimension matches ``cell.n_cells``. After that, it is mutated to
-        induce variations between cells.
+    attr_value = obj.element_level_attr_dict[attr_name]
 
-        Args:
-            cells (CellPopulation): CellPopulation.
-            attr_name (str): Name of the attribute.
+    if attr_value.shape[0] != 1:
+        raise RuntimeError(
+            "Cannot duplicate an attribute which has already been duplicated."
+        )
 
-        """
-        n_cells = cells.n_cells
-        self._duplicate_attribute(cells, attr_name, n_cells)
-        self._mutate_attribute(cells, attr_name)
-        cells.sync_grn_from_se()
+    duplicated_attr_value = torch.cat([attr_value] * n_cells, dim=0)
 
-    @staticmethod
-    def _duplicate_attribute(cells: CellPopulation, attr_name: str, n_cells: int):
-        """
-        Duplicates the attribute ``attr_name``. It assumes that the attribute has not yet been duplicated, i.e.
-        ``attr.tensor.shape[0] == 1``.
-
-        Args:
-            cells (CellPopulation): CellPopulation.
-            attr_name (str): Name of the attribute.
-            n_cells: Number of cells.
-        """
-        tensor = cells.get_attribute(attr_name).tensor
-
-        if tensor.shape[0] != 1:
-            raise RuntimeError(
-                "Cannot duplicate an attribute which has already been duplicated."
-            )
-
-        cells.get_attribute(attr_name).tensor = torch.cat([tensor] * n_cells, dim=0)
-
-    @abstractmethod
-    def _mutate_attribute(self, cells: CellPopulation, attr_name: str):
-        """
-        Mutates the attribute ``attr_name``.
-
-        Args:
-            cells (CellPopulation): CellPopulation.
-            attr_name (str): Name of the attribute.
-        """
+    obj.__setattr__(attr_name, duplicated_attr_value)
 
 
-########################################################################################################################
-# Mutation classes
-########################################################################################################################
+def apply_bernoulli_mutation(obj: Union[CellPopulation, NodeSet, EdgeSet], attr_name: str, p: float, n_cells: int):
+
+    duplicate_attribute(obj, attr_name, n_cells)
+    noise_dist = Bernoulli(1 - p)
+
+    attr_value = obj.element_level_attr_dict[attr_name]
+
+    obj.__setattr__(attr_name, attr_value * noise_dist.sample(attr_value.shape))
 
 
-class GaussianMutation(Mutation):
-    """
-    Class to apply mutations in the form of Gaussian noise.
+def apply_gaussian_mutation(obj: Union[CellPopulation, NodeSet, EdgeSet], attr_name: str, sigma: float, n_cells: int):
 
-    Attributes:
-        noise_dist (torch.distributions.normal.Normal): Normal distribution to sample noise.
-    """
+    duplicate_attribute(obj, attr_name, n_cells)
+    noise_dist = Normal(0, sigma)
 
-    def __init__(self, sigma: float):
-        """
-        Args:
-            sigma: standard deviation of the Gaussian noise to be applied.
-        """
-        self.noise_dist = Normal(0, sigma)
+    attr_value = obj.element_level_attr_dict[attr_name]
 
-    def _mutate_attribute(self, cells: CellPopulation, attr_name: str):
-        """
-        Mutates the attribute ``attr_name``.
-
-        Args:
-            cells (CellPopulation): CellPopulation.
-            attr_name (str): Name of the attribute.
-        """
-        attr = cells.get_attribute(attr_name)
-
-        attr.tensor += self.noise_dist.sample(attr.tensor.shape)
+    obj.__setattr__(attr_name, attr_value + noise_dist.sample(attr_value.shape))
 
 
-class BernoulliMutation(Mutation):
-    """
-    Class to apply mutations wherein each parametric element is set to zero with a probability ``p``.
+if __name__ == "__main__":
+    from flecs.trajectory import simulate_deterministic_trajectory
+    from flecs.utils import plot_trajectory, set_seed
+    import matplotlib.pyplot as plt
+    import torch
+    from flecs.cell_population import TestCellPop
 
-    Attributes:
-        noise_dist (torch.distributions.bernoulli.Bernoulli): Bernoulli distribution to sample noise.
-    """
+    set_seed(0)
 
-    def __init__(self, p: float):
-        """
-        Args:
-            p (float): probability of being set to zero
-        """
-        self.noise_dist = Bernoulli(1 - p)
+    cell_pop = TestCellPop(n_cells=3)
 
-    def _mutate_attribute(self, cells: CellPopulation, attr_name: str):
-        """
-        Mutates the attribute ``attr_name``.
+    # apply_bernoulli_mutation(cell_pop["gene"], "alpha", p=0.5, n_cells=3)
 
-        Args:
-            cells (CellPopulation): CellPopulation.
-            attr_name (str): Name of the attribute.
-        """
-        attr = cells.get_attribute(attr_name)
+    # apply_gaussian_mutation(cell_pop['gene', 'activation', 'gene'], "weights", sigma=1., n_cells=3)
 
-        attr.tensor *= self.noise_dist.sample(attr.tensor.shape)
+    # Simulate trajectory
+    cell_traj = simulate_deterministic_trajectory(cell_pop, torch.linspace(0, 1, 100))
+
+    plot_trajectory(cell_traj[:, 0], legend=False)
+    plt.show()
+
+    plot_trajectory(cell_traj[:, 1], legend=False)
+    plt.show()
+
+    plot_trajectory(cell_traj[:, 2], legend=False)
+    plt.show()
