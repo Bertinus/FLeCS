@@ -6,15 +6,9 @@ from torch.distributions.normal import Normal
 
 from flecs.cell_population import CellPopulation
 
-########################################################################################################################
-# Mutation Abstract class
-########################################################################################################################
-
 
 class Mutation(ABC):
-    """
-    Abstract class responsible for applying mutations to cells.
-    """
+    """Abstract class responsible for applying mutations to cells."""
 
     def duplicate_and_mutate_attribute(self, cells: CellPopulation, attr_name: str):
         """
@@ -64,14 +58,8 @@ class Mutation(ABC):
         """
 
 
-########################################################################################################################
-# Mutation classes
-########################################################################################################################
-
-
 class GaussianMutation(Mutation):
-    """
-    Class to apply mutations in the form of Gaussian noise.
+    """Class to apply mutations in the form of Gaussian noise.
 
     Attributes:
         noise_dist (torch.distributions.normal.Normal): Normal distribution to sample noise.
@@ -98,8 +86,7 @@ class GaussianMutation(Mutation):
 
 
 class BernoulliMutation(Mutation):
-    """
-    Class to apply mutations wherein each parametric element is set to zero with a probability ``p``.
+    """Class to apply mutations wherein each parametric element is set to zero with a probability ``p``.
 
     Attributes:
         noise_dist (torch.distributions.bernoulli.Bernoulli): Bernoulli distribution to sample noise.

@@ -391,8 +391,24 @@ def load_interaction_data(
     n_nodes=None,
     avg_num_parents=None,
 ):
+    """Loads a InteractionGraph instance given an valid ineraction dataset string.
+    Args:
+        interaction_type (str): Specified the desired dataset. See INTERACTION_TYPES
+            for valid entries.
+        realnet_tissue_type_file (str): For `fantom5` data only, specifies the input
+            file to be used when loading the graph (see flecs/datasets/RealNet/
+            Network_compendium/Tissue-specific_regulatory_networks_FANTOM5-v1 for valid
+            entries).
+        tf_only (bool): Whether to include only transcription factors (TODO: which datasets)?
+        subsample_edge_prob (float): When 0 < x < 1, used to sample a subset of the edges
+            when instantiating the InteractionGraph. TODO: which datasets?
+        n_nodes (int): Number of nodes in a synthetic graph ("test" / "random").
+        avg_num_parents (int): Mean number of parents of each node in a synthetic graph
+            (`test` / `random`).
 
-    assert interaction_type in [
+    Returns: An InteractionGraph instance.
+    """
+    INTERACTION_TYPES = [
         "test",
         "calcium_pathway",
         "regulon_db",
@@ -401,10 +417,11 @@ def load_interaction_data(
         "string",
         "random",
     ]
+    assert interaction_type in INTERACTION_TYPES
 
     if interaction_type == "test":
         nx_graph = load_calcium_signaling_pathway()
-        # add a dummy numerical node attribute
+        # Add a dummy numerical node attribute.
         node_attr = {}
         for node in nx_graph.nodes(data=True):
             if node[1]["type"] == "gene":
@@ -414,7 +431,7 @@ def load_interaction_data(
 
         nx.set_node_attributes(nx_graph, node_attr)
 
-        # add a dummy numerical edge attribute
+        # Add a dummy numerical edge attribute.
         edge_attr = {}
         for edge in nx_graph.edges(data=True):
             if edge[2]["type"] == "activation":
@@ -452,6 +469,7 @@ def load_interaction_data(
                 "argument needs to be specified. To get available files, run:"
                 "'flecs.data.interaction_data.available_tissue_type_files()'"
             )
+
         fantom5_graph = get_realnet_graph(
             path_to_file=os.path.join(
                 "RealNet",
@@ -468,7 +486,8 @@ def load_interaction_data(
     elif interaction_type == "string":
         string_graph = get_string_graph(
             path_to_file=os.path.join(
-                "STRING", "9606.protein.physical.links.detailed.v11.5.txt.gz"
+                "STRING",
+                "9606.protein.physical.links.detailed.v11.5.txt.gz"
             ),
             experimental_only=False,
             subsample_edge_prop=subsample_edge_prop,

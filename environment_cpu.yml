@@ -11,12 +11,15 @@ dependencies:
   - numpy >=1.21.2
   - pandas >=1.3.4
   - pyg::pytorch-scatter
+  - pyg::pyg
   - python >= 3.10
   - pytorch::cpuonly
   - conda-forge::pytorch >=1.12.1
   - scipy >=1.7.1
   - torchdiffeq >=0.2.2
   - nomkl
+  - jupyter
+  - jupyterlab
   - conda-forge::pytorch_geometric >=2.1.0
   - conda-forge::mkdocs
   - conda-forge::mkdocs-material

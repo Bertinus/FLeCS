@@ -25,11 +25,6 @@ def set_seed(k):
     torch.random.manual_seed(k)
 
 
-########################################################################################################################
-# Plotting
-########################################################################################################################
-
-
 def plot_trajectory(trajectory, time_points=None, legend=True):
     """
     Function to plot the time evolution of the state of a cell.

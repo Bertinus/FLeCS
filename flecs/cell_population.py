@@ -9,12 +9,8 @@ from flecs.production import SimpleConv
 import torch
 
 
-########################################################################################################################
-# Cell Population abstract class
-########################################################################################################################
-
-
 class CellPopulation(ABC):
+    """Cell Population abstract pass."""
     def __init__(self, interaction_graph, n_cells=1, per_node_state_dim=1):
         """A population of independnet cells (no cell-cell interactions).
 
@@ -156,12 +152,8 @@ class CellPopulation(ABC):
         return s
 
 
-########################################################################################################################
-# Cell Population classes
-########################################################################################################################
-
-
 class TestCellPop(CellPopulation):
+    """Small Cell Population for Testing."""
     def __init__(self, n_cells=1):
         """
         Information about the test interaction data:
@@ -270,18 +262,3 @@ class ProteinRNACellPop(CellPopulation):
             self[n_type].decay_rate = exponential_decay(
                 self, n_type, alpha=self[n_type].alpha
             )
-
-
-if __name__ == "__main__":
-    from flecs.trajectory import simulate_deterministic_trajectory
-    from flecs.utils import plot_trajectory, set_seed
-    import matplotlib.pyplot as plt
-
-    set_seed(0)
-
-    # Simulate trajectories.
-    cell_pop = ProteinRNACellPop()
-    cell_traj = simulate_deterministic_trajectory(cell_pop, torch.linspace(0, 1, 100))
-
-    plot_trajectory(cell_traj, legend=False)
-    plt.show()
