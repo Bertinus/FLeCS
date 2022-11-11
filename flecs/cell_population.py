@@ -1,6 +1,6 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
-from flecs.edge_set import EdgeSet
-from flecs.node_set import NodeSet
+import flecs.sets as sets
 from typing import Tuple, Dict, Union
 from flecs.data.interaction_data import load_interaction_data
 from torch.distributions.normal import Normal
@@ -16,7 +16,7 @@ import torch
 
 class CellPopulation(ABC, torch.nn.Module):
     def __init__(self, interaction_graph, n_cells=1, per_node_state_dim=1):
-        """A population of independnet cells (no cell-cell interactions).
+        """A population of independent cells (no cell-cell interactions).
 
         Args:
             interaction_graph ():
@@ -24,9 +24,9 @@ class CellPopulation(ABC, torch.nn.Module):
         """
         super().__init__()
         # str type of node (e.g., gene, protein).
-        self._node_set_dict: Dict[str, NodeSet] = {}
+        self._node_set_dict: Dict[str, sets.NodeSet] = {}
         # str types of interactions (src, interaction_type, dest).
-        self._edge_set_dict: Dict[Tuple[str, str, str], EdgeSet] = {}
+        self._edge_set_dict: Dict[Tuple[str, str, str], sets.EdgeSet] = {}
 
         self.initialize_from_interaction_graph(interaction_graph)
 
@@ -36,21 +36,21 @@ class CellPopulation(ABC, torch.nn.Module):
 
     def __getitem__(
         self, key: Union[str, Tuple[str, str, str]]
-    ) -> Union[NodeSet, EdgeSet]:
+    ) -> Union[sets.NodeSet, sets.EdgeSet]:
         if type(key) is tuple:
             return self._edge_set_dict[key]
         else:
             return self._node_set_dict[key]
 
     def __setitem__(
-        self, key: Union[str, Tuple[str, str, str]], value: Union[NodeSet, EdgeSet]
+        self, key: Union[str, Tuple[str, str, str]], value: Union[sets.NodeSet, sets.EdgeSet]
     ):
         if type(key) is tuple:
-            assert isinstance(value, EdgeSet)
+            assert isinstance(value, sets.EdgeSet)
             assert key not in self._edge_set_dict
             self._edge_set_dict[key] = value
         else:
-            assert isinstance(value, NodeSet)
+            assert isinstance(value, sets.NodeSet)
             assert key not in self._node_set_dict
             self._node_set_dict[key] = value
 
@@ -106,7 +106,7 @@ class CellPopulation(ABC, torch.nn.Module):
             k: v for k, v in n_type_data.items() if isinstance(v, torch.Tensor)
         }
 
-        return NodeSet(self, idx_low, idx_high, attribute_dict=attr_dict)
+        return sets.NodeSet(self, idx_low, idx_high, attribute_dict=attr_dict)
 
     def get_edge_set(self, e_type, e_type_data):
         """ "Given an edge type, and edge data, return an edge set."""
@@ -119,7 +119,7 @@ class CellPopulation(ABC, torch.nn.Module):
             k: v for k, v in e_type_data.items() if isinstance(v, torch.Tensor)
         }
 
-        return EdgeSet(edges, attribute_dict=attr_dict)
+        return sets.EdgeSet(edges, attribute_dict=attr_dict)
 
     def initialize_from_interaction_graph(self, interaction_graph):
         """Initializes a graph from an `interaction_graph` object."""
