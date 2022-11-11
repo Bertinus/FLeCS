@@ -1,17 +1,12 @@
 import pytest
 import torch
 
-from flecs.cell_population import CellPopulation
-from flecs.grn import RandomGRN
-from flecs.structural_equation import SigmoidLinearSE
+from flecs.cell_population import TestCellPop
 
 
 @pytest.fixture
 def my_cells():
-    grn = RandomGRN(10, 3)
-    linear_se = SigmoidLinearSE()
-
-    return CellPopulation(grn=grn, structural_equation=linear_se)
+    return TestCellPop()
 
 
 def test_set_cell_state(my_cells):

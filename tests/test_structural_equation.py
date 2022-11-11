@@ -2,18 +2,13 @@ import pytest
 import torch
 from torch.distributions.normal import Normal
 
-from flecs.attribute import EdgeAttribute, GeneAttribute
-from flecs.structural_equation import SigmoidLinearSE
+from flecs.edge_set import EdgeSet
+from flecs.node_set import NodeSet
 
 
 @pytest.fixture
 def my_se():
-    lin_se = SigmoidLinearSE(weights=EdgeAttribute(dim=(1,), prior_dist=Normal(0, 1)))
-    lin_se.initialize_given_structure(
-        4, torch.LongTensor([[0, 1], [1, 2], [2, 3], [2, 0]])
-    )
-
-    return lin_se
+    pass
 
 
 def test_edge_heads(my_se):
