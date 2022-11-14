@@ -30,9 +30,21 @@ class CellPopulation(ABC, torch.nn.Module):
 
         self.initialize_from_interaction_graph(interaction_graph)
 
-        self.state = 10 * torch.ones((n_cells, self.n_nodes, per_node_state_dim))
+        # Create state and production/decay rates as empty tensors
+        self.state = torch.empty((n_cells, self.n_nodes, per_node_state_dim))
         self.decay_rates = torch.empty((n_cells, self.n_nodes, per_node_state_dim))
         self.production_rates = torch.empty((n_cells, self.n_nodes, per_node_state_dim))
+
+        # Initialize
+        self.reset_state()
+
+    def sample_from_state_prior_dist(self):
+        return 10 * torch.ones(self.state.shape)
+
+    def reset_state(self):
+        self.state = self.sample_from_state_prior_dist()
+        self.production_rates = torch.empty(self.production_rates.shape)
+        self.decay_rates = torch.empty(self.decay_rates.shape)
 
     def __getitem__(
         self, key: Union[str, Tuple[str, str, str]]
@@ -90,11 +102,6 @@ class CellPopulation(ABC, torch.nn.Module):
         """Estimates derivative of system using first differences."""
         self.state = state
         return self.get_production_rates() - self.get_decay_rates()
-
-    def reset_state(self):
-        self.state = 10 * torch.ones(self.state.shape)
-        self.production_rates = torch.empty(self.production_rates.shape)
-        self.decay_rates = torch.empty(self.decay_rates.shape)
 
     def get_node_set(self, n_type_data):
         """Given node type data, return a node set with the associated attributes."""
