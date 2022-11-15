@@ -10,7 +10,11 @@ from flecs.utils import get_project_root
 from typing import Set, List, Dict, Union, Tuple
 from flecs.data.calcium_signaling_pathway import load_calcium_signaling_pathway
 from flecs.data.grn_db_loaders import (
-    get_realnet_graph, get_regulondb_graph, get_string_graph)
+    get_realnet_graph,
+    get_regulondb_graph,
+    get_string_graph,
+    get_composite_graph,
+)
 from flecs.data.random_graph import get_graph_from_adj_mat, get_random_adjacency_mat
 
 # Base types
@@ -388,7 +392,6 @@ def load_interaction_data(
     n_nodes=None,
     avg_num_parents=None,
 ):
-
     assert interaction_type in [
         "test",
         "calcium_pathway",
@@ -396,6 +399,7 @@ def load_interaction_data(
         "encode",
         "fantom5",
         "string",
+        "composite",
         "random",
     ]
 
@@ -463,14 +467,45 @@ def load_interaction_data(
         return InteractionGraph(fantom5_graph)
 
     elif interaction_type == "string":
-        string_graph = get_string_graph(path_to_file=os.path.join(
-            "STRING",
-            "9606.protein.physical.links.detailed.v11.5.txt.gz"
+        string_graph = get_string_graph(
+            path_to_file=os.path.join(
+                "STRING", "9606.protein.physical.links.detailed.v11.5.txt.gz"
             ),
-        experimental_only=False,
-        subsample_edge_prop=subsample_edge_prop,
+            experimental_only=True,
+            subsample_edge_prop=subsample_edge_prop,
         )
         return InteractionGraph(string_graph)
+
+    elif interaction_type == "composite":
+        string_graph = get_string_graph(
+            path_to_file=os.path.join(
+                "STRING", "9606.protein.physical.links.detailed.v11.5.txt.gz"
+            ),
+            experimental_only=True,
+            subsample_edge_prop=subsample_edge_prop,
+        )
+
+        if realnet_tissue_type_file not in available_realnet_tissue_type_files():
+            raise ValueError(
+                "When loading GRNs from fantom5, the 'realnet_tissue_type_file'"
+                "argument needs to be specified. To get available files, run:"
+                "'flecs.data.interaction_data.available_tissue_type_files()'"
+            )
+
+        fantom5_graph = get_realnet_graph(
+            path_to_file=os.path.join(
+                "RealNet",
+                "Network_compendium",
+                "Tissue-specific_regulatory_networks_FANTOM5-v1",
+                "32_high-level_networks",
+                realnet_tissue_type_file,
+            ),
+            tf_only=tf_only,
+            subsample_edge_prop=subsample_edge_prop,
+        )
+
+        composite_graph = get_composite_graph(fantom5_graph, string_graph)
+        return InteractionGraph(composite_graph)
 
     elif interaction_type == "random":
         assert n_nodes is not None, "Please specify 'n_nodes'."
@@ -482,7 +517,6 @@ def load_interaction_data(
 
 
 def main():
-
     print(
         "calcium_pathway: {}".format(
             load_interaction_data("calcium_pathway").__repr__()
@@ -536,6 +570,15 @@ def main():
             load_interaction_data(
                 "string",
                 subsample_edge_prop=0.5,
+            ).__repr__()
+        )
+    )
+
+    print(
+        "composite: {}".format(
+            load_interaction_data(
+                "composite",
+                realnet_tissue_type_file="01_neurons_fetal_brain.txt.gz",
             ).__repr__()
         )
     )
