@@ -2,7 +2,7 @@ import torch
 from typing import Dict
 
 
-class NodeSet:
+class NodeSet(torch.nn.Module):
     def __init__(
         self,
         super_cell,
@@ -34,6 +34,7 @@ class NodeSet:
                 state to encompass multiple nodesets, so we index the super cell so we
                 can pass a nodeset tensor to the ODE solver.
         """
+        super().__init__()
         self._super_cell = super_cell
         self.idx_low = idx_low
         self.idx_high = idx_high
@@ -58,7 +59,12 @@ class NodeSet:
         if item in self.attribute_dict.keys():
             return self.attribute_dict[item]
         else:
-            raise AttributeError
+            return super().__getattr__(item)
+
+    def __setattr__(self, key, value):
+        if isinstance(value, torch.nn.Parameter) and key in self.attribute_dict:
+            del self.attribute_dict[key]
+        super().__setattr__(key, value)
 
     def keys(self):
         return self.attribute_dict.keys()
@@ -94,13 +100,15 @@ class NodeSet:
 
     def init_param(self, name: str, dist: torch.distributions.Distribution, shape=None):
         if shape is None:
-            shape = (len(self),)
-        self[name] = dist.sample(shape)
-
-    def init_param(self, name: str, dist: torch.distributions.Distribution, shape=None):
-        if shape is None:
             shape = (1, len(self), 1)
         self[name] = dist.sample(shape)
+
+    def parameters(self, recurse: bool = True):
+        for k, param in self.attribute_dict.items():
+            if isinstance(param, torch.nn.Parameter):
+                yield param
+        for name, param in self.named_parameters(recurse=recurse):
+            yield param
 
     def __len__(self):
         return self.idx_high - self.idx_low + 1

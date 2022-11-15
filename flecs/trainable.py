@@ -17,7 +17,13 @@ class TrainableTestCellPop(TestCellPop, torch.nn.Module):
 set_seed(0)
 
 ground_truth_cellpop = TestCellPop()
-trainable_cellpop = TrainableTestCellPop()
+trainable_cellpop = TestCellPop()
+
+# Cast some tensors of the CellPop object as a torch Parameters. That's it!
+trainable_cellpop["gene"].alpha = torch.nn.Parameter(trainable_cellpop["gene"].alpha)
+e_type = "gene", "activation", "gene"
+trainable_cellpop[e_type].weights = torch.nn.Parameter(trainable_cellpop[e_type].weights)
+
 
 optimizer = torch.optim.Adam(trainable_cellpop.parameters(), lr=0.01)
 loss = torch.nn.MSELoss()

@@ -9,8 +9,12 @@ from flecs.production import SimpleConv
 import torch
 
 
-class CellPopulation(ABC):
-    """Cell Population abstract pass."""
+########################################################################################################################
+# Cell Population abstract class
+########################################################################################################################
+
+
+class CellPopulation(ABC, torch.nn.Module):
     def __init__(self, interaction_graph, n_cells=1, per_node_state_dim=1):
         """A population of independnet cells (no cell-cell interactions).
 
@@ -18,6 +22,7 @@ class CellPopulation(ABC):
             interaction_graph ():
             n_cells (int): Number of independent cells in the population.
         """
+        super().__init__()
         # str type of node (e.g., gene, protein).
         self._node_set_dict: Dict[str, NodeSet] = {}
         # str types of interactions (src, interaction_type, dest).
@@ -132,6 +137,14 @@ class CellPopulation(ABC):
             self[n_type].production_rate = torch.zeros(
                 self[n_type].production_rate.shape
             )
+
+    def parameters(self, recurse: bool = True):
+        for k, n_set in self._node_set_dict.items():
+            yield from n_set.parameters(recurse=recurse)
+        for k, e_set in self._edge_set_dict.items():
+            yield from e_set.parameters(recurse=recurse)
+        for name, param in self.named_parameters(recurse=recurse):
+            yield param
 
     def __repr__(self):
         return "CellPopulation. {} nodes and {} cells.\n".format(
