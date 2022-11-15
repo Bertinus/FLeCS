@@ -11,7 +11,6 @@ class TrainableTestCellPop(TestCellPop, torch.nn.Module):
         torch.nn.Module.__init__(self)
 
         self["gene"].alpha = torch.nn.Parameter(self["gene"].alpha)
-
         self.parameter_list = torch.nn.ParameterList([self["gene"].alpha])
 
 
