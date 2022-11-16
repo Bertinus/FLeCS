@@ -4,6 +4,7 @@ channels:
   - defaults
   - pyg
   - pytorch
+  - bioconda
 dependencies:
   - conda-forge::biopython >=1.79
   - matplotlib
@@ -26,3 +27,4 @@ dependencies:
   - conda-forge::mkdocs-autorefs
   - conda-forge::mkdocstrings
   - conda-forge::mkdocstrings-python
+  - bioconda::mygene

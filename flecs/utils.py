@@ -39,6 +39,10 @@ def plot_trajectory(trajectory, time_points=None, legend=True):
         RuntimeWarning: If the trajectory contains more than one cell. Only the trajectory of the first cell is plotted.
 
     """
+    if len(trajectory.shape) == 3:
+        trajectory = trajectory[:, None, :, :]
+    assert len(trajectory.shape) == 4
+
     if trajectory.shape[1] != 1:
         raise RuntimeWarning(
             "Trajectory contains {} cells. Plotting the trajectory of the first cell only.".format(

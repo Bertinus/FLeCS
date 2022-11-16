@@ -4,6 +4,7 @@ channels:
   - defaults
   - pyg
   - pytorch
+  - bioconda
 dependencies:
   - pip >=22.2.2
   - conda-forge::biopython >=1.79
@@ -20,3 +21,4 @@ dependencies:
   - scipy >=1.7.1
   - torchdiffeq >=0.2.2
   - conda-forge::pytorch_geometric >=2.1.0
+  - bioconda::mygene

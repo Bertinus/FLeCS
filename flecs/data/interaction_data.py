@@ -13,6 +13,7 @@ from flecs.data.grn_db_loaders import (
     get_realnet_graph,
     get_regulondb_graph,
     get_string_graph,
+    get_composite_graph,
 )
 from flecs.data.random_graph import get_graph_from_adj_mat, get_random_adjacency_mat
 
@@ -415,6 +416,7 @@ def load_interaction_data(
         "encode",
         "fantom5",
         "string",
+        "composite",
         "random",
     ]
     assert interaction_type in INTERACTION_TYPES
@@ -486,13 +488,43 @@ def load_interaction_data(
     elif interaction_type == "string":
         string_graph = get_string_graph(
             path_to_file=os.path.join(
-                "STRING",
-                "9606.protein.physical.links.detailed.v11.5.txt.gz"
+                "STRING", "9606.protein.physical.links.detailed.v11.5.txt.gz"
             ),
-            experimental_only=False,
+            experimental_only=True,
             subsample_edge_prop=subsample_edge_prop,
         )
         return InteractionGraph(string_graph)
+
+    elif interaction_type == "composite":
+        string_graph = get_string_graph(
+            path_to_file=os.path.join(
+                "STRING", "9606.protein.physical.links.detailed.v11.5.txt.gz"
+            ),
+            experimental_only=True,
+            subsample_edge_prop=subsample_edge_prop,
+        )
+
+        if realnet_tissue_type_file not in available_realnet_tissue_type_files():
+            raise ValueError(
+                "When loading GRNs from fantom5, the 'realnet_tissue_type_file'"
+                "argument needs to be specified. To get available files, run:"
+                "'flecs.data.interaction_data.available_tissue_type_files()'"
+            )
+
+        fantom5_graph = get_realnet_graph(
+            path_to_file=os.path.join(
+                "RealNet",
+                "Network_compendium",
+                "Tissue-specific_regulatory_networks_FANTOM5-v1",
+                "32_high-level_networks",
+                realnet_tissue_type_file,
+            ),
+            tf_only=tf_only,
+            subsample_edge_prop=subsample_edge_prop,
+        )
+
+        composite_graph = get_composite_graph(fantom5_graph, string_graph)
+        return InteractionGraph(composite_graph)
 
     elif interaction_type == "random":
         assert n_nodes is not None, "Please specify 'n_nodes'."
