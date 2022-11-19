@@ -16,6 +16,7 @@ nav:
       - data/gene_regulatory_networks.md
       - data/protein_interactions.md
       - data/composite_graphs.md
+      - data/pathways.md
       - data/random_graphs.md
 
 #theme:
