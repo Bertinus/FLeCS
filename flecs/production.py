@@ -1,6 +1,7 @@
 """Functions for modelling production rates in cells."""
+import torch
 import torch_scatter
-from torch_geometric.nn import MessagePassing
+import torch_geometric.nn
 
 
 def efficient_inplace_message_passing(obj, e_type, e_weights):
@@ -16,12 +17,27 @@ def efficient_inplace_message_passing(obj, e_type, e_weights):
     )
 
 
-class SimpleConv(MessagePassing):
+class SimpleConv(torch_geometric.nn.MessagePassing):
     def __init__(self, tgt_nodeset_len):
+        """
+
+        Args:
+            tgt_nodeset_len:
+        """
         self.tgt_nodeset_len = tgt_nodeset_len
         super().__init__(aggr="add")
 
     def forward(self, x, edge_index, edge_weight):
+        """
+
+        Args:
+            x:
+            edge_index:
+            edge_weight:
+
+        Returns:
+
+        """
         out = self.propagate(
             edge_index,
             x=x,
@@ -31,5 +47,10 @@ class SimpleConv(MessagePassing):
 
         return out
 
-    def message(self, x_j, edge_weight):
+    def message(self, x_j: torch.Tensor, edge_weight: torch.Tensor):
+        """
+        Args:
+            x_j (torch.Tensor):
+            edge_weight (torch.Tensor):
+        """
         return edge_weight * x_j

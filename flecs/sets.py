@@ -69,6 +69,9 @@ class NodeSet(Set):
 
     @property
     def state(self) -> torch.Tensor:
+        """
+        (`torch.Tensor`)
+        """
         return self._super_cell.state[:, self.idx_low: self.idx_high + 1]
 
     @state.setter
@@ -78,6 +81,9 @@ class NodeSet(Set):
 
     @property
     def decay_rate(self) -> torch.Tensor:
+        """
+        (`torch.Tensor`)
+        """
         return self._super_cell.decay_rates[:, self.idx_low: self.idx_high + 1]
 
     @decay_rate.setter
@@ -87,6 +93,9 @@ class NodeSet(Set):
 
     @property
     def production_rate(self) -> torch.Tensor:
+        """
+        (`torch.Tensor`)
+        """
         return self._super_cell.production_rates[:, self.idx_low: self.idx_high + 1]
 
     @production_rate.setter
@@ -208,9 +217,25 @@ class EdgeSet(Set):
         return edges, edge_attr_dict
 
     def out_edges(self, gene_idx: int):
+        """
+
+        Args:
+            gene_idx:
+
+        Returns:
+
+        """
         return self.edges[:, 0] == gene_idx
 
     def in_edges(self, gene_idx: int):
+        """
+
+        Args:
+            gene_idx:
+
+        Returns:
+
+        """
         return self.edges[:, 1] == gene_idx
 
     def __len__(self):

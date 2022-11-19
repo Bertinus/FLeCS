@@ -19,3 +19,6 @@ dependencies:
   - torchdiffeq >=0.2.2
   - conda-forge::pytorch_geometric >=2.1.0
   - bioconda::mygene
+  - pip
+  - pip:
+    - torchtyping

@@ -3,11 +3,20 @@ site_url: https://bertinus.github.io
 
 nav:
   - Home: index.md
-  - Cell Population: cell_population.md
-  - Sets: sets.md
-  - Trajectories: trajectory.md
-  - Interventions: intervention.md
-  - Utils: utils.md
+  - FLeCS:
+      - Cell Population: cell_population.md
+      - Sets: sets.md
+      - Trajectories: trajectory.md
+      - Interventions: intervention.md
+      - Mutations: mutation.md
+      - Utils: utils.md
+  - FLeCS.Data:
+      - data/utils.md
+      - data/interaction_data.md
+      - data/gene_regulatory_networks.md
+      - data/protein_interactions.md
+      - data/composite_graphs.md
+      - data/random_graphs.md
 
 #theme:
 #  name: "material"

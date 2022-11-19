@@ -1,8 +1,9 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 import flecs.sets as sets
-from typing import Tuple, Dict, Union
-from flecs.data.interaction_data import load_interaction_data
+from typing import Tuple, Dict, Union, List
+from flecs.data.utils import load_interaction_data
+from flecs.data.interaction_data import InteractionData, SetData, EdgeType
 from torch.distributions.normal import Normal
 from flecs.decay import exponential_decay
 from flecs.production import SimpleConv
@@ -15,12 +16,31 @@ import torch
 
 
 class CellPopulation(ABC, torch.nn.Module):
-    def __init__(self, interaction_graph, n_cells=1, per_node_state_dim=1):
-        """A population of independent cells (no cell-cell interactions).
+    def __init__(self, interaction_graph: InteractionData, n_cells: int = 1, per_node_state_dim: int = 1):
+        """
+        A population of cells. The mechanisms of cells are based on a graph with different types of nodes and edges.
+        Cell dynamics can be computed based on these mechanisms.
+
+        * Node types can correspond to "proteins", "small molecules", "gene/RNA".
+        * Edges types can correspond to ("gene", "activates", "gene"), "protein", ("catalyses", "small molecule").
+
+        All nodes/edges of a given type are grouped in a `NodeSet`/`EdgeSet` object.
+
+        A specific node usually corresponds to a specific molecule (e.g. RNA from gene X) whose concentration
+        (and potentially other properties) is tracked. Together, the tracked properties of all the nodes define the
+        state of the cell.
+
+        Production rates and Decay rates (for all the tracked properties of all the nodes) can be computed and depend
+        on the state of the cell, as well as node parameters and edge parameters.
+
+        To define you own `CellPopulation` class inheriting from this class, you need to implement the two methods
+        `compute_production_rates` and `compute_decay_rates`. You may also want to override
+        `sample_from_state_prior_dist` in order to choose your own prior distribution over the state of cells.
 
         Args:
-            interaction_graph ():
-            n_cells (int): Number of independent cells in the population.
+            interaction_graph: Graph on which the mechanisms of cells will be based.
+            n_cells: Number of cells in the population.
+            per_node_state_dim: Dimension of the state associated with each node.
         """
         super().__init__()
         # str type of node (e.g., gene, protein).
@@ -38,10 +58,20 @@ class CellPopulation(ABC, torch.nn.Module):
         # Initialize
         self.reset_state()
 
-    def sample_from_state_prior_dist(self):
-        return 10 * torch.ones(self.state.shape)
+    def sample_from_state_prior_dist(self) -> torch.Tensor:
+        """
+        Method which will get called to (re)-initialize the state of the cell population.
+
+        Returns:
+            Tensor with the same shape as `self.state`
+        """
+        SCALE_FACTOR = 10  # Arbitrarily initialize the state to 10
+        return SCALE_FACTOR * torch.ones(self.state.shape)
 
     def reset_state(self):
+        """
+        Resets the state, production_rates and decay_rates attributes of the cell population.
+        """
         self.state = self.sample_from_state_prior_dist()
         self.production_rates = torch.empty(self.production_rates.shape)
         self.decay_rates = torch.empty(self.decay_rates.shape)
@@ -68,43 +98,77 @@ class CellPopulation(ABC, torch.nn.Module):
 
     @property
     def n_cells(self) -> int:
+        """
+        (`int`): Number of cells in the population
+        """
         return self.state.shape[0]
 
     @property
     def n_nodes(self) -> int:
+        """
+        (`int`): Number of nodes in the underlying cell mechanisms.
+        """
         return sum([len(node_set) for node_set in self._node_set_dict.values()])
 
     @property
-    def node_types(self):
+    def node_types(self) -> List[str]:
+        """
+        (`List[str]`): List the different types of nodes. Each node type is associated with a NodeSet object.
+        """
         return list(self._node_set_dict.keys())
 
     @property
-    def edge_types(self):
+    def edge_types(self) -> List[Tuple[str, str, str]]:
+        """
+        (`List[str]`): List the different types of edges. Each edge type is associated with an EdgeSet object.
+        """
         return list(self._edge_set_dict.keys())
 
     @abstractmethod
-    def compute_production_rates(self):
+    def compute_production_rates(self) -> None:
+        """
+        Abstract method. Should update `self.production_rates`
+        """
         pass
 
     @abstractmethod
-    def compute_decay_rates(self):
+    def compute_decay_rates(self) -> None:
+        """
+        Abstract method. Should update `self.decay_rates`
+        """
         pass
 
-    def get_production_rates(self):
+    def get_production_rates(self) -> torch.Tensor:
+        """
+        Computes and returns the production rates of the system.
+        """
         self.compute_production_rates()
         return self.production_rates
 
-    def get_decay_rates(self):
+    def get_decay_rates(self) -> torch.Tensor:
+        """
+        Computes and returns the decay rates of the system.
+        """
         self.compute_decay_rates()
         return self.decay_rates
 
-    def get_derivatives(self, state):
-        """Estimates derivative of system using first differences."""
+    def get_derivatives(self, state: torch.Tensor) -> torch.Tensor:
+        """
+        Computes and returns the time derivatives of the system for a given state.
+
+        Args:
+            state: State of the Cell Population for which derivatives should be computed.
+
+        Returns:
+            time derivatives of all the tracked properties of the Cell Population.
+        """
         self.state = state
         return self.get_production_rates() - self.get_decay_rates()
 
-    def get_node_set(self, n_type_data):
-        """Given node type data, return a node set with the associated attributes."""
+    def _get_node_set(self, n_type_data: SetData) -> sets.NodeSet:
+        """
+        Given node type data Dict[AttributeName, AttributeList], returns a `NodeSet` with the associated attributes.
+        """
         idx_low = int(min(n_type_data["idx"]))
         idx_high = int(max(n_type_data["idx"]))
         n_type_data.pop("idx", None)
@@ -115,8 +179,10 @@ class CellPopulation(ABC, torch.nn.Module):
 
         return sets.NodeSet(self, idx_low, idx_high, attribute_dict=attr_dict)
 
-    def get_edge_set(self, e_type, e_type_data):
-        """ "Given an edge type, and edge data, return an edge set."""
+    def _get_edge_set(self, e_type: EdgeType, e_type_data: SetData) -> sets.EdgeSet:
+        """
+        Given edge type data Dict[AttributeName, AttributeList], returns an `EdgeSet` with the associated attributes.
+        """
         edges = e_type_data["idx"]
         edges[:, 0] -= self[e_type[0]].idx_low  # e_type[0] = Source
         edges[:, 1] -= self[e_type[2]].idx_low  # e_type[2] = Target
@@ -128,18 +194,24 @@ class CellPopulation(ABC, torch.nn.Module):
 
         return sets.EdgeSet(edges, attribute_dict=attr_dict)
 
-    def initialize_from_interaction_graph(self, interaction_graph):
-        """Initializes a graph from an `interaction_graph` object."""
+    def initialize_from_interaction_graph(self, interaction_graph: InteractionData) -> None:
+        """
+        Args:
+            interaction_graph: Interaction graph from which `NodeSet` and `EdgeSet` objects should be initialized.
+        """
         node_data_dict = interaction_graph.get_formatted_node_data()
         edge_data_dict = interaction_graph.get_formatted_edge_data()
 
         for n_type, n_type_data in node_data_dict.items():
-            self[n_type] = self.get_node_set(n_type_data)
+            self[n_type] = self._get_node_set(n_type_data)
 
         for e_type, e_type_data in edge_data_dict.items():
-            self[e_type] = self.get_edge_set(e_type, e_type_data)
+            self[e_type] = self._get_edge_set(e_type, e_type_data)
 
-    def set_production_rates_to_zero(self):
+    def set_production_rates_to_zero(self) -> None:
+        """
+        Sets production rates to zero.
+        """
         for n_type in self.node_types:
             self[n_type].production_rate = torch.zeros(
                 self[n_type].production_rate.shape
@@ -178,13 +250,35 @@ class CellPopulation(ABC, torch.nn.Module):
 
 
 class TestCellPop(CellPopulation):
-    def __init__(self, n_cells=1):
+    def __init__(self, n_cells: int = 1):
         """
-        Information about the test interaction data:
-            60 nodes and 57 edges.
-            2 different types of nodes: ['compound', 'gene'].
-            5 different types of interactions: ['', 'activation',
-                'binding/association', 'compound', 'inhibition'].
+        Basic Test Cell Population.
+
+        Mechanisms are based on the calcium signaling pathway from KEGG:
+
+        * 60 nodes and 57 edges.
+        * 2 different types of nodes: ['compound', 'gene'].
+        * 5 different types of interactions: ['', 'activation', 'binding/association', 'compound', 'inhibition'].
+
+        Each edge type is associated with a graph convolution operation. Together these graph convolutions are used to
+        compute the production rates:
+
+        ```
+        self[tgt_n_type].production_rate += self[e_type].simple_conv(
+            x=self[src_n_type].state,
+            edge_index=self[e_type].edges.T,
+            edge_weight=self[e_type].weights,
+        )
+        ```
+
+        Decay rates are exponential decays:
+
+        ```
+        self[n_type].decay_rate = exponential_decay(self, n_type, alpha=self[n_type].alpha)
+        ```
+
+        Args:
+            n_cells: Number of cells in the population
         """
         interaction_graph = load_interaction_data("test")
         super().__init__(interaction_graph, n_cells=n_cells)
@@ -199,7 +293,6 @@ class TestCellPop(CellPopulation):
             self[e_type].simple_conv = SimpleConv(tgt_nodeset_len=len(self[e_type[2]]))
 
     def compute_production_rates(self):
-        """Applies a generic production rate fn to each edge type individually."""
         self.set_production_rates_to_zero()
         for e_type in self.edge_types:
             src_n_type, interaction_type, tgt_n_type = e_type
@@ -210,7 +303,6 @@ class TestCellPop(CellPopulation):
             )
 
     def compute_decay_rates(self):
-        """Applies a generic decay fn to each node type individually."""
         for n_type in self.node_types:
             self[n_type].decay_rate = exponential_decay(
                 self, n_type, alpha=self[n_type].alpha
@@ -218,16 +310,48 @@ class TestCellPop(CellPopulation):
 
 
 class ProteinRNACellPop(CellPopulation):
-    def __init__(self, n_cells=1):
+    def __init__(self, n_cells: int = 1):
         """
-        Information about the test interaction data:
-            60 nodes and 57 edges.
-            2 different types of nodes: ['compound', 'gene'].
-            5 different types of interactions: ['', 'activation',
-                'binding/association', 'compound', 'inhibition'].
+        Cell Population which tracks the concentration of RNA and the concentration of protein for each gene.
 
-            The state of each node will be a 2D-vector, in which the first element corresponds
-            to the concentration fo RNA, and the second element to the concentration of protein.
+        Mechanisms are based on the calcium signaling pathway from KEGG:
+
+        * 60 nodes and 57 edges.
+        * 2 different types of nodes: ['compound', 'gene'].
+        * 5 different types of interactions: ['', 'activation', 'binding/association', 'compound', 'inhibition'].
+
+        Each edge type is associated with a graph convolution operation. Together these graph convolutions are used to
+        compute the production rates:
+
+        For edges between genes, of type ("gene", *, "gene"),  messages are passed from the source proteins to the
+        target RNA. This aims at modeling transcriptional regulation by Transcription Factor proteins:
+
+        ```
+        rna_prod_rate += self[e_type].simple_conv(
+            x=protein_state,
+            edge_index=self[e_type].edges.T,
+            edge_weight=self[e_type].weights,
+        )
+        ```
+
+        For the other types of edges, default graph convolutions are used:
+
+        ```
+        self[tgt_n_type].production_rate += self[e_type].simple_conv(
+            x=self[src_n_type].state,
+            edge_index=self[e_type].edges.T,
+            edge_weight=self[e_type].weights,
+        )
+        ```
+
+        Decay rates are exponential decays:
+
+        ```
+        self[n_type].decay_rate = exponential_decay(self, n_type, alpha=self[n_type].alpha)
+        ```
+
+        Args:
+            n_cells: Number of cells in the population
         """
         interaction_graph = load_interaction_data("test")
         super().__init__(interaction_graph, n_cells=n_cells, per_node_state_dim=2)
@@ -250,7 +374,6 @@ class ProteinRNACellPop(CellPopulation):
             self[e_type].simple_conv = SimpleConv(tgt_nodeset_len=len(self[e_type[2]]))
 
     def compute_production_rates(self):
-        """Applies a generic production rate fn to each edge type individually."""
         self.set_production_rates_to_zero()
 
         for e_type in self.edge_types:
@@ -281,7 +404,6 @@ class ProteinRNACellPop(CellPopulation):
         )
 
     def compute_decay_rates(self):
-        """Applies a generic decay fn to each node type individually."""
         for n_type in self.node_types:
             self[n_type].decay_rate = exponential_decay(
                 self, n_type, alpha=self[n_type].alpha

@@ -1,9 +1,7 @@
-# Sets
+# Gene Regulatory Networks
+``flecs.data.gene_regulatory_networks``
 
-This module contains two classes, ``NodeSet`` and  ``EdgeSet``, which represent sets of nodes / edges of a given type.
-These classes inherit from ``torch.nn.Module``.
-
-::: flecs.sets.NodeSet
+::: flecs.data.gene_regulatory_networks.get_regulondb_graph
     rendering:
         show_source: false
         heading_level: 2
@@ -13,7 +11,7 @@ These classes inherit from ``torch.nn.Module``.
         show_signature: true
         members_order: source
 
-::: flecs.sets.EdgeSet
+::: flecs.data.gene_regulatory_networks.get_realnet_graph
     rendering:
         show_source: false
         heading_level: 2
