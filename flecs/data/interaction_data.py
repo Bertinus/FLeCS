@@ -87,8 +87,10 @@ class InteractionData(nx.DiGraph):
             node_types = self.node_types
             relation_types = self.relation_types
 
-            self._edge_types = [(node_types[e[0]], relation_types[e_idx], node_types[e[1]])
-                                for e_idx, e in enumerate(self.edges())]
+            self._edge_types = [
+                (node_types[e[0]], relation_types[e_idx], node_types[e[1]])
+                for e_idx, e in enumerate(self.edges())
+            ]
         return list(set(self._edge_types))
 
     def node_data(self, n_type: str = None) -> NodeData:
@@ -167,7 +169,9 @@ class InteractionData(nx.DiGraph):
         """
         formatted_edge_data = {}
         for e_type in self.unique_edge_types:
-            e_data_dict = self.edge_data(src_type=e_type[0], r_type=e_type[1], tgt_type=e_type[2])
+            e_data_dict = self.edge_data(
+                src_type=e_type[0], r_type=e_type[1], tgt_type=e_type[2]
+            )
             formatted_edge_data[e_type] = self.format_type_data_dict(e_data_dict)
 
         return formatted_edge_data
@@ -222,7 +226,11 @@ class InteractionData(nx.DiGraph):
         Checks that all edges of a given type have the same set of attributes.
         """
         for e_type in self.unique_edge_types:
-            edge_data_list = list(self.edge_data(src_type=e_type[0], r_type=e_type[1], tgt_type=e_type[2]).values())
+            edge_data_list = list(
+                self.edge_data(
+                    src_type=e_type[0], r_type=e_type[1], tgt_type=e_type[2]
+                ).values()
+            )
             reference_attr_names = set(edge_data_list.pop(0).keys())
             for e_data in edge_data_list:
                 assert set(e_data.keys()) == reference_attr_names
@@ -232,6 +240,7 @@ class InteractionData(nx.DiGraph):
         Make sure node/edges are associated with a string "type" attribute, and that other attributes are either
         strings or torch Tensors with dimension 1 along the first axis.
         """
+
         def assert_attributes_are_valid(d: dict):
             assert isinstance(d["type"], str)
             for v in d.values():

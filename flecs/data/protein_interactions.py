@@ -71,4 +71,3 @@ def get_string_graph(
     )
 
     return graph
-

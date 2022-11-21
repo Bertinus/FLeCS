@@ -185,7 +185,9 @@ def get_realnet_graph(
 ########################################################################################################################
 
 
-def get_regulondb_edges(tf_only: bool = False) -> Tuple[Dict[str, int], List[Tuple[int, int]], List[int]]:
+def get_regulondb_edges(
+    tf_only: bool = False,
+) -> Tuple[Dict[str, int], List[Tuple[int, int]], List[int]]:
     """
     Get information about the edges from the RegulonDB database
 
@@ -267,7 +269,7 @@ def load_and_crop_regulon_db_file(filename: str, n_header_lines: int) -> pd.Data
         DataFrame
     """
     f = open(filename, "r", encoding="ISO-8859-1")
-    lines = f.readlines()[n_header_lines + 1:]
+    lines = f.readlines()[n_header_lines + 1 :]
     df = pd.DataFrame([line.strip().split("\t") for line in lines])
 
     return df

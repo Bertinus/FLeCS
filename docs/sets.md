@@ -1,7 +1,7 @@
 # Sets
 
 This module contains two classes, ``NodeSet`` and  ``EdgeSet``, which represent sets of nodes / edges of a given type.
-These classes inherit from ``torch.nn.Module``.
+These classes inherit from a `Set` class which itself inherits from ``torch.nn.Module``.
 
 ::: flecs.sets.NodeSet
     rendering:

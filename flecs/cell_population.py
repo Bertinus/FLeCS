@@ -16,13 +16,18 @@ import torch
 
 
 class CellPopulation(ABC, torch.nn.Module):
-    def __init__(self, interaction_graph: InteractionData, n_cells: int = 1, per_node_state_dim: int = 1):
+    def __init__(
+        self,
+        interaction_graph: InteractionData,
+        n_cells: int = 1,
+        per_node_state_dim: int = 1,
+    ):
         """
         A population of cells. The mechanisms of cells are based on a graph with different types of nodes and edges.
         Cell dynamics can be computed based on these mechanisms.
 
-        * Node types can correspond to "proteins", "small molecules", "gene/RNA".
-        * Edges types can correspond to ("gene", "activates", "gene"), "protein", ("catalyses", "small molecule").
+        * Examples of node types include "proteins", "small molecules", "gene/RNA".
+        * Examples of edge types include ("gene", "activates", "gene"), ("protein", "catalyses", "small molecule").
 
         All nodes/edges of a given type are grouped in a `NodeSet`/`EdgeSet` object.
 
@@ -31,9 +36,9 @@ class CellPopulation(ABC, torch.nn.Module):
         state of the cell.
 
         Production rates and Decay rates (for all the tracked properties of all the nodes) can be computed and depend
-        on the state of the cell, as well as node parameters and edge parameters.
+        on the state of the cell, as well as some node parameters and edge parameters.
 
-        To define you own `CellPopulation` class inheriting from this class, you need to implement the two methods
+        To define your own `CellPopulation` class inheriting from this class, you need to implement the two methods
         `compute_production_rates` and `compute_decay_rates`. You may also want to override
         `sample_from_state_prior_dist` in order to choose your own prior distribution over the state of cells.
 
@@ -85,7 +90,9 @@ class CellPopulation(ABC, torch.nn.Module):
             return self._node_set_dict[key]
 
     def __setitem__(
-        self, key: Union[str, Tuple[str, str, str]], value: Union[sets.NodeSet, sets.EdgeSet]
+        self,
+        key: Union[str, Tuple[str, str, str]],
+        value: Union[sets.NodeSet, sets.EdgeSet],
     ):
         if type(key) is tuple:
             assert isinstance(value, sets.EdgeSet)
@@ -184,6 +191,7 @@ class CellPopulation(ABC, torch.nn.Module):
         Given edge type data Dict[AttributeName, AttributeList], returns an `EdgeSet` with the associated attributes.
         """
         edges = e_type_data["idx"]
+        # We shift the edge tail/head indices by idx_low for the source/target node type
         edges[:, 0] -= self[e_type[0]].idx_low  # e_type[0] = Source
         edges[:, 1] -= self[e_type[2]].idx_low  # e_type[2] = Target
         e_type_data.pop("idx", None)
@@ -194,7 +202,9 @@ class CellPopulation(ABC, torch.nn.Module):
 
         return sets.EdgeSet(edges, attribute_dict=attr_dict)
 
-    def initialize_from_interaction_graph(self, interaction_graph: InteractionData) -> None:
+    def initialize_from_interaction_graph(
+        self, interaction_graph: InteractionData
+    ) -> None:
         """
         Args:
             interaction_graph: Interaction graph from which `NodeSet` and `EdgeSet` objects should be initialized.

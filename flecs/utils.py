@@ -37,7 +37,9 @@ def set_seed(k: int):
 
 
 def plot_trajectory(
-    trajectory: torch.Tensor, time_points: Union[torch.Tensor, np.array, List] = None, legend: bool = True
+    trajectory: torch.Tensor,
+    time_points: Union[torch.Tensor, np.array, List] = None,
+    legend: bool = True,
 ) -> None:
     """
     Function to plot the time evolution of the state of a cell.

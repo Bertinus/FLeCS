@@ -37,11 +37,25 @@ class CrisprIntervention(Intervention):
         cells: CellPopulation,
         e_type: Tuple[str, str, str] = ("gene", "activation", "gene"),
     ):
+        """
+        Intervention class where intervening on a node corresponds to removing all its outgoing edges.
+
+        This can be used to simulate CRISPR-Cas9 knock-outs where the sequence of the intervened gene is changed,
+        resulting in a complete loss of function of the gene products.
+
+        Args:
+            cells: CellPopulation object to which interventions should be applied.
+            e_type: Edge type considered for edge removal.
+        """
         self.cells = cells
         self.e_type = e_type
         self.intervened_edges: Dict[int, tuple] = {}
 
     def intervene(self, gene: int) -> None:
+        """
+        Args:
+            gene: Gene whose outgoing edges are removed
+        """
         if gene in self.intervened_edges.keys():
             raise ValueError("Gene {} has already been knocked out".format(gene))
 

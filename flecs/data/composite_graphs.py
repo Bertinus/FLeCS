@@ -11,7 +11,9 @@ import numpy as np
 ########################################################################################################################
 
 
-def get_grn_string_composite_graph(realnet_graph: nx.DiGraph, string_graph: nx.DiGraph) -> nx.DiGraph:
+def get_grn_string_composite_graph(
+    realnet_graph: nx.DiGraph, string_graph: nx.DiGraph
+) -> nx.DiGraph:
     """
     Initializes a composite graph from a RealNet graph and a String graph. This composite graph contains both "gene"
     nodes and "protein" nodes.
@@ -104,7 +106,9 @@ def get_grn_string_composite_graph(realnet_graph: nx.DiGraph, string_graph: nx.D
 ########################################################################################################################
 
 
-def get_protein_gene_mapping(realnet_graph: nx.DiGraph, string_graph: nx.DiGraph) -> Dict[str, str]:
+def get_protein_gene_mapping(
+    realnet_graph: nx.DiGraph, string_graph: nx.DiGraph
+) -> Dict[str, str]:
     """
 
     Finds the mapping between genes in *realnet_graph* and proteins in *string_graph*. Each protein is associated with
