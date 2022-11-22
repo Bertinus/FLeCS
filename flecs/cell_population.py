@@ -17,10 +17,10 @@ import torch
 
 class CellPopulation(ABC, torch.nn.Module):
     def __init__(
-        self,
-        interaction_graph: InteractionData,
-        n_cells: int = 1,
-        per_node_state_dim: int = 1,
+            self,
+            interaction_graph: InteractionData,
+            n_cells: int = 1,
+            per_node_state_dim: int = 1,
     ):
         """
         A population of cells. The mechanisms of cells are based on a graph with different types of nodes and edges.
@@ -63,26 +63,34 @@ class CellPopulation(ABC, torch.nn.Module):
         # Initialize
         self.reset_state()
 
-    def sample_from_state_prior_dist(self) -> torch.Tensor:
+    def sample_from_state_prior_dist(self, shape=None) -> torch.Tensor:
         """
-        Method which will get called to (re)-initialize the state of the cell population.
+        Method which samples from the prior distribution of the state of the cell population.
+
+        Args:
+            shape: Shape of the output sample. By default, it will return a sample of the same shape as the current
+                state.
 
         Returns:
             Tensor with the same shape as `self.state`
         """
         SCALE_FACTOR = 10  # Arbitrarily initialize the state to 10
-        return SCALE_FACTOR * torch.ones(self.state.shape)
+
+        if shape is None:
+            shape = self.state.shape
+
+        return SCALE_FACTOR * torch.ones(shape)
 
     def reset_state(self):
         """
         Resets the state, production_rates and decay_rates attributes of the cell population.
         """
         self.state = self.sample_from_state_prior_dist()
-        self.production_rates = torch.empty(self.production_rates.shape)
-        self.decay_rates = torch.empty(self.decay_rates.shape)
+        self.production_rates = torch.empty(self.state.shape)
+        self.decay_rates = torch.empty(self.state.shape)
 
     def __getitem__(
-        self, key: Union[str, Tuple[str, str, str]]
+            self, key: Union[str, Tuple[str, str, str]]
     ) -> Union[sets.NodeSet, sets.EdgeSet]:
         if type(key) is tuple:
             return self._edge_set_dict[key]
@@ -90,9 +98,9 @@ class CellPopulation(ABC, torch.nn.Module):
             return self._node_set_dict[key]
 
     def __setitem__(
-        self,
-        key: Union[str, Tuple[str, str, str]],
-        value: Union[sets.NodeSet, sets.EdgeSet],
+            self,
+            key: Union[str, Tuple[str, str, str]],
+            value: Union[sets.NodeSet, sets.EdgeSet],
     ):
         if type(key) is tuple:
             assert isinstance(value, sets.EdgeSet)
@@ -102,6 +110,12 @@ class CellPopulation(ABC, torch.nn.Module):
             assert isinstance(value, sets.NodeSet)
             assert key not in self._node_set_dict
             self._node_set_dict[key] = value
+
+    def __delitem__(self, key: Union[str, Tuple[str, str, str]]):
+        if type(key) is tuple:
+            del self._edge_set_dict[key]
+        else:
+            self._delete_node_set(key)
 
     @property
     def n_cells(self) -> int:
@@ -177,7 +191,7 @@ class CellPopulation(ABC, torch.nn.Module):
         Given node type data Dict[AttributeName, AttributeList], returns a `NodeSet` with the associated attributes.
         """
         idx_low = int(min(n_type_data["idx"]))
-        idx_high = int(max(n_type_data["idx"]))
+        idx_high = int(max(n_type_data["idx"])) + 1
         n_type_data.pop("idx", None)
 
         attr_dict = {
@@ -203,7 +217,7 @@ class CellPopulation(ABC, torch.nn.Module):
         return sets.EdgeSet(edges, attribute_dict=attr_dict)
 
     def initialize_from_interaction_graph(
-        self, interaction_graph: InteractionData
+            self, interaction_graph: InteractionData
     ) -> None:
         """
         Args:
@@ -226,6 +240,81 @@ class CellPopulation(ABC, torch.nn.Module):
             self[n_type].production_rate = torch.zeros(
                 self[n_type].production_rate.shape
             )
+
+    def _extend_state(self, n_added_nodes: int) -> None:
+        """
+        Method which appends a number of nodes to the state of the cell population. The shapes of the production rates
+        and decay rates get updated accordingly.
+
+        Args:
+            n_added_nodes: Number of nodes to be added
+        """
+        added_node_shape = (self.n_cells, n_added_nodes, self.state.shape[2])
+        added_state = self.sample_from_state_prior_dist(added_node_shape)
+
+        self.state = torch.cat([self.state, added_state], dim=1)
+
+        # Production and decay rates also get extended
+        self.production_rates = torch.cat(
+            [self.production_rates, torch.empty(added_node_shape)], dim=1
+        )
+        self.decay_rates = torch.cat(
+            [self.decay_rates, torch.empty(added_node_shape)], dim=1
+        )
+
+    def append_node_set(
+            self,
+            n_type: str,
+            n_added_nodes: int,
+            attribute_dict: Dict[str, torch.Tensor] = None,
+    ):
+        """
+        Adds a node set object to the cell population.
+
+        Args:
+            n_type: Name of the node type to be added.
+            n_added_nodes: Number of nodes in the set to be added.
+            attribute_dict: Dict of node attributes.
+        """
+        assert isinstance(n_type, str)
+        self._extend_state(n_added_nodes)
+        self[n_type] = sets.NodeSet(
+            self,
+            self.n_nodes,
+            self.n_nodes + n_added_nodes - 1,
+            attribute_dict=attribute_dict,
+        )
+
+    def _delete_node_set(self, n_type: str) -> None:
+        """
+        Removes a node set from the cell population object. The state / production rates / decay rates
+        get truncated accordingly.
+
+        Args:
+            n_type: Node type to be removed.
+        """
+        assert isinstance(n_type, str)
+
+        node_set_to_be_del = self[n_type]
+
+        # Remove the corresponding state / production rates / decay rates
+        self.state = torch.cat([self.state[:, :node_set_to_be_del.idx_low],
+                                self.state[:, node_set_to_be_del.idx_high:]], dim=1)
+
+        self.production_rates = torch.cat([self.production_rates[:, :node_set_to_be_del.idx_low],
+                                           self.production_rates[:, node_set_to_be_del.idx_high:]], dim=1)
+
+        self.decay_rates = torch.cat([self.decay_rates[:, :node_set_to_be_del.idx_low],
+                                      self.decay_rates[:, node_set_to_be_del.idx_high:]], dim=1)
+
+        # Removing the node set
+        del self._node_set_dict[n_type]
+
+        # Adapt the indices of other node sets
+        for other_n_type in self.node_types:
+            if self[other_n_type].idx_low >= node_set_to_be_del.idx_high:
+                self[other_n_type].idx_low -= len(node_set_to_be_del)
+                self[other_n_type].idx_high -= len(node_set_to_be_del)
 
     def parameters(self, recurse: bool = True):
         for k, n_set in self._node_set_dict.items():
@@ -410,7 +499,7 @@ class ProteinRNACellPop(CellPopulation):
         # Protein production depends on the concentration of the RNA coding for that protein
         protein_prod_rate = self["gene"].production_rate[:, :, 1:2]
         protein_prod_rate += (
-            self["gene"].translation_rate * self["gene"].state[:, :, 0:1]
+                self["gene"].translation_rate * self["gene"].state[:, :, 0:1]
         )
 
     def compute_decay_rates(self):

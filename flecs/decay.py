@@ -1,10 +1,11 @@
 """Functions for modelling decay processes in cells."""
-from flecs.cell_population import CellPopulation
+from __future__ import annotations
+import flecs.cell_population as cp
 import torch
 
 
 def exponential_decay(
-    cellpop: CellPopulation, node_type: str, alpha: torch.Tensor = None
+    cellpop: cp.CellPopulation, node_type: str, alpha: torch.Tensor = None
 ):
     """
     Applies an exponential decay with rate *alpha* to the states of a given type of nodes.

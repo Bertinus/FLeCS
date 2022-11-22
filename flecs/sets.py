@@ -50,9 +50,7 @@ class NodeSet(Set):
         Args:
             super_cell: The cell this NodeSet belongs to.
             idx_low: Beginning index of this NodeSet in the state of super_cell.
-            idx_high: Ending index of this NodeSet in the state of super_cell. Note this code
-                corrects for the fact that arrays are indexed using half intervals by
-                adding +1 to idx_high for all operations.
+            idx_high: Ending index of this NodeSet in the state of super_cell.
             attribute_dict: Dict of node attributes.
         """
         super().__init__()
@@ -61,51 +59,52 @@ class NodeSet(Set):
         self.idx_high = idx_high
 
         # Initialize attributes
-        for attr_name, attr_value in attribute_dict.items():
-            if len(attr_value.shape) == 1 and attr_value.shape[0] == len(self):
-                attr_value = attr_value[None, :]
-            self.__setattr__(attr_name, attr_value)
+        if attribute_dict is not None:
+            for attr_name, attr_value in attribute_dict.items():
+                if len(attr_value.shape) == 1 and attr_value.shape[0] == len(self):
+                    attr_value = attr_value[None, :]
+                self.__setattr__(attr_name, attr_value)
 
     @property
     def state(self) -> torch.Tensor:
         """
         (`torch.Tensor`) State of the nodes included in this NodeSet.
         """
-        return self._super_cell.state[:, self.idx_low : self.idx_high + 1]
+        return self._super_cell.state[:, self.idx_low : self.idx_high]
 
     @state.setter
     def state(self, state: torch.Tensor):
         assert state.shape == self.state.shape
-        self._super_cell.state[:, self.idx_low : self.idx_high + 1] = state
+        self._super_cell.state[:, self.idx_low : self.idx_high] = state
 
     @property
     def decay_rate(self) -> torch.Tensor:
         """
         (`torch.Tensor`) Decay rates of the nodes included in this NodeSet.
         """
-        return self._super_cell.decay_rates[:, self.idx_low : self.idx_high + 1]
+        return self._super_cell.decay_rates[:, self.idx_low : self.idx_high]
 
     @decay_rate.setter
     def decay_rate(self, decay_rate: torch.Tensor):
         assert decay_rate.shape == self.decay_rate.shape
-        self._super_cell.decay_rates[:, self.idx_low : self.idx_high + 1] = decay_rate
+        self._super_cell.decay_rates[:, self.idx_low : self.idx_high] = decay_rate
 
     @property
     def production_rate(self) -> torch.Tensor:
         """
         (`torch.Tensor`) Production rates of the nodes included in this NodeSet.
         """
-        return self._super_cell.production_rates[:, self.idx_low : self.idx_high + 1]
+        return self._super_cell.production_rates[:, self.idx_low : self.idx_high]
 
     @production_rate.setter
     def production_rate(self, production_rate: torch.Tensor):
         assert production_rate.shape == self.production_rate.shape
         self._super_cell.production_rates[
-            :, self.idx_low : self.idx_high + 1
+            :, self.idx_low : self.idx_high
         ] = production_rate
 
     def __len__(self):
-        return self.idx_high - self.idx_low + 1
+        return self.idx_high - self.idx_low
 
     def __repr__(self):
         return "NodeSet(idx_low={}, idx_high={}, {})".format(
@@ -144,10 +143,11 @@ class EdgeSet(Set):
         self.edges = edges.long()
 
         # Initialize attributes
-        for attr_name, attr_value in attribute_dict.items():
-            if len(attr_value.shape) == 1 and attr_value.shape[0] == len(self):
-                attr_value = attr_value[None, :]
-            self.__setattr__(attr_name, attr_value)
+        if attribute_dict is not None:
+            for attr_name, attr_value in attribute_dict.items():
+                if len(attr_value.shape) == 1 and attr_value.shape[0] == len(self):
+                    attr_value = attr_value[None, :]
+                self.__setattr__(attr_name, attr_value)
 
     @property
     def tails(self) -> torch.Tensor:
