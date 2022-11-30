@@ -25,6 +25,5 @@ dependencies:
   - conda-forge::mkdocstrings
   - conda-forge::mkdocstrings-python
   - bioconda::mygene
+  - bioconda::scanpy
   - pip
-  - pip:
-    - torchtyping

@@ -5,7 +5,8 @@ from typing import Tuple, Dict, Union, List
 from flecs.data.utils import load_interaction_data
 from flecs.data.interaction_data import InteractionData, SetData, EdgeType
 from torch.distributions.normal import Normal
-from flecs.decay import exponential_decay
+import flecs.decay as dc
+import networkx as nx
 from flecs.production import SimpleConv
 import torch
 
@@ -17,10 +18,11 @@ import torch
 
 class CellPopulation(ABC, torch.nn.Module):
     def __init__(
-            self,
-            interaction_graph: InteractionData,
-            n_cells: int = 1,
-            per_node_state_dim: int = 1,
+        self,
+        interaction_graph: Union[InteractionData, nx.DiGraph],
+        n_cells: int = 1,
+        per_node_state_dim: int = 1,
+        scale_factor_state_prior: float = 10.0,
     ):
         """
         A population of cells. The mechanisms of cells are based on a graph with different types of nodes and edges.
@@ -46,8 +48,14 @@ class CellPopulation(ABC, torch.nn.Module):
             interaction_graph: Graph on which the mechanisms of cells will be based.
             n_cells: Number of cells in the population.
             per_node_state_dim: Dimension of the state associated with each node.
+            scale_factor_state_prior: Value at which the state will be initialized by default
         """
         super().__init__()
+
+        if not isinstance(interaction_graph, InteractionData):
+            assert isinstance(interaction_graph, nx.DiGraph)
+            interaction_graph = InteractionData(interaction_graph)
+
         # str type of node (e.g., gene, protein).
         self._node_set_dict: Dict[str, sets.NodeSet] = {}
         # str types of interactions (src, interaction_type, dest).
@@ -59,6 +67,8 @@ class CellPopulation(ABC, torch.nn.Module):
         self.state = torch.empty((n_cells, self.n_nodes, per_node_state_dim))
         self.decay_rates = torch.empty((n_cells, self.n_nodes, per_node_state_dim))
         self.production_rates = torch.empty((n_cells, self.n_nodes, per_node_state_dim))
+
+        self.scale_factor_state_prior = scale_factor_state_prior
 
         # Initialize
         self.reset_state()
@@ -74,12 +84,10 @@ class CellPopulation(ABC, torch.nn.Module):
         Returns:
             Tensor with the same shape as `self.state`
         """
-        SCALE_FACTOR = 10  # Arbitrarily initialize the state to 10
-
         if shape is None:
             shape = self.state.shape
 
-        return SCALE_FACTOR * torch.ones(shape)
+        return self.scale_factor_state_prior * torch.ones(shape)
 
     def reset_state(self):
         """
@@ -90,7 +98,7 @@ class CellPopulation(ABC, torch.nn.Module):
         self.decay_rates = torch.empty(self.state.shape)
 
     def __getitem__(
-            self, key: Union[str, Tuple[str, str, str]]
+        self, key: Union[str, Tuple[str, str, str]]
     ) -> Union[sets.NodeSet, sets.EdgeSet]:
         if type(key) is tuple:
             return self._edge_set_dict[key]
@@ -98,9 +106,9 @@ class CellPopulation(ABC, torch.nn.Module):
             return self._node_set_dict[key]
 
     def __setitem__(
-            self,
-            key: Union[str, Tuple[str, str, str]],
-            value: Union[sets.NodeSet, sets.EdgeSet],
+        self,
+        key: Union[str, Tuple[str, str, str]],
+        value: Union[sets.NodeSet, sets.EdgeSet],
     ):
         if type(key) is tuple:
             assert isinstance(value, sets.EdgeSet)
@@ -194,11 +202,7 @@ class CellPopulation(ABC, torch.nn.Module):
         idx_high = int(max(n_type_data["idx"])) + 1
         n_type_data.pop("idx", None)
 
-        attr_dict = {
-            k: v for k, v in n_type_data.items() if isinstance(v, torch.Tensor)
-        }
-
-        return sets.NodeSet(self, idx_low, idx_high, attribute_dict=attr_dict)
+        return sets.NodeSet(self, idx_low, idx_high, attribute_dict=n_type_data)
 
     def _get_edge_set(self, e_type: EdgeType, e_type_data: SetData) -> sets.EdgeSet:
         """
@@ -210,14 +214,10 @@ class CellPopulation(ABC, torch.nn.Module):
         edges[:, 1] -= self[e_type[2]].idx_low  # e_type[2] = Target
         e_type_data.pop("idx", None)
 
-        attr_dict = {
-            k: v for k, v in e_type_data.items() if isinstance(v, torch.Tensor)
-        }
-
-        return sets.EdgeSet(edges, attribute_dict=attr_dict)
+        return sets.EdgeSet(edges, attribute_dict=e_type_data)
 
     def initialize_from_interaction_graph(
-            self, interaction_graph: InteractionData
+        self, interaction_graph: InteractionData
     ) -> None:
         """
         Args:
@@ -237,8 +237,8 @@ class CellPopulation(ABC, torch.nn.Module):
         Sets production rates to zero.
         """
         for n_type in self.node_types:
-            self[n_type].production_rate = torch.zeros(
-                self[n_type].production_rate.shape
+            self[n_type].production_rates = torch.zeros(
+                self[n_type].production_rates.shape
             )
 
     def _extend_state(self, n_added_nodes: int) -> None:
@@ -263,10 +263,10 @@ class CellPopulation(ABC, torch.nn.Module):
         )
 
     def append_node_set(
-            self,
-            n_type: str,
-            n_added_nodes: int,
-            attribute_dict: Dict[str, torch.Tensor] = None,
+        self,
+        n_type: str,
+        n_added_nodes: int,
+        attribute_dict: Dict[str, torch.Tensor] = None,
     ):
         """
         Adds a node set object to the cell population.
@@ -281,7 +281,7 @@ class CellPopulation(ABC, torch.nn.Module):
         self[n_type] = sets.NodeSet(
             self,
             self.n_nodes,
-            self.n_nodes + n_added_nodes - 1,
+            self.n_nodes + n_added_nodes,
             attribute_dict=attribute_dict,
         )
 
@@ -298,14 +298,29 @@ class CellPopulation(ABC, torch.nn.Module):
         node_set_to_be_del = self[n_type]
 
         # Remove the corresponding state / production rates / decay rates
-        self.state = torch.cat([self.state[:, :node_set_to_be_del.idx_low],
-                                self.state[:, node_set_to_be_del.idx_high:]], dim=1)
+        self.state = torch.cat(
+            [
+                self.state[:, : node_set_to_be_del.idx_low],
+                self.state[:, node_set_to_be_del.idx_high :],
+            ],
+            dim=1,
+        )
 
-        self.production_rates = torch.cat([self.production_rates[:, :node_set_to_be_del.idx_low],
-                                           self.production_rates[:, node_set_to_be_del.idx_high:]], dim=1)
+        self.production_rates = torch.cat(
+            [
+                self.production_rates[:, : node_set_to_be_del.idx_low],
+                self.production_rates[:, node_set_to_be_del.idx_high :],
+            ],
+            dim=1,
+        )
 
-        self.decay_rates = torch.cat([self.decay_rates[:, :node_set_to_be_del.idx_low],
-                                      self.decay_rates[:, node_set_to_be_del.idx_high:]], dim=1)
+        self.decay_rates = torch.cat(
+            [
+                self.decay_rates[:, : node_set_to_be_del.idx_low],
+                self.decay_rates[:, node_set_to_be_del.idx_high :],
+            ],
+            dim=1,
+        )
 
         # Removing the node set
         del self._node_set_dict[n_type]
@@ -338,7 +353,7 @@ class CellPopulation(ABC, torch.nn.Module):
 
         s += "\tEdgeSets:\n"
         for k, v in self._edge_set_dict.items():
-            s += "\t\t{}: {}".format(k, v)
+            s += "\t\t{}: {}\n".format(k, v)
 
         return s
 
@@ -363,7 +378,7 @@ class TestCellPop(CellPopulation):
         compute the production rates:
 
         ```
-        self[tgt_n_type].production_rate += self[e_type].simple_conv(
+        self[tgt_n_type].production_rates += self[e_type].simple_conv(
             x=self[src_n_type].state,
             edge_index=self[e_type].edges.T,
             edge_weight=self[e_type].weights,
@@ -373,7 +388,7 @@ class TestCellPop(CellPopulation):
         Decay rates are exponential decays:
 
         ```
-        self[n_type].decay_rate = exponential_decay(self, n_type, alpha=self[n_type].alpha)
+        self[n_type].decay_rates = exponential_decay(self, n_type, alpha=self[n_type].alpha)
         ```
 
         Args:
@@ -395,15 +410,17 @@ class TestCellPop(CellPopulation):
         self.set_production_rates_to_zero()
         for e_type in self.edge_types:
             src_n_type, interaction_type, tgt_n_type = e_type
-            self[tgt_n_type].production_rate += self[e_type].simple_conv(
+            self[tgt_n_type].production_rates += self[e_type].simple_conv(
                 x=self[src_n_type].state,
                 edge_index=self[e_type].edges.T,
                 edge_weight=self[e_type].weights,
             )
 
+        self.production_rates = torch.sigmoid(self.production_rates)
+
     def compute_decay_rates(self):
         for n_type in self.node_types:
-            self[n_type].decay_rate = exponential_decay(
+            self[n_type].decay_rates = dc.exponential_decay(
                 self, n_type, alpha=self[n_type].alpha
             )
 
@@ -426,7 +443,7 @@ class ProteinRNACellPop(CellPopulation):
         target RNA. This aims at modeling transcriptional regulation by Transcription Factor proteins:
 
         ```
-        rna_prod_rate += self[e_type].simple_conv(
+        rna_prod_rates += self[e_type].simple_conv(
             x=protein_state,
             edge_index=self[e_type].edges.T,
             edge_weight=self[e_type].weights,
@@ -436,7 +453,7 @@ class ProteinRNACellPop(CellPopulation):
         For the other types of edges, default graph convolutions are used:
 
         ```
-        self[tgt_n_type].production_rate += self[e_type].simple_conv(
+        self[tgt_n_type].production_rates += self[e_type].simple_conv(
             x=self[src_n_type].state,
             edge_index=self[e_type].edges.T,
             edge_weight=self[e_type].weights,
@@ -446,7 +463,7 @@ class ProteinRNACellPop(CellPopulation):
         Decay rates are exponential decays:
 
         ```
-        self[n_type].decay_rate = exponential_decay(self, n_type, alpha=self[n_type].alpha)
+        self[n_type].decay_rates = exponential_decay(self, n_type, alpha=self[n_type].alpha)
         ```
 
         Args:
@@ -460,7 +477,7 @@ class ProteinRNACellPop(CellPopulation):
             name="alpha", dist=Normal(5, 1), shape=(1, len(self["gene"]), 2)
         )
         self["gene"].init_param(
-            name="translation_rate", dist=Normal(5, 1), shape=(1, len(self["gene"]), 1)
+            name="translation_rates", dist=Normal(5, 1), shape=(1, len(self["gene"]), 1)
         )
 
         self["compound"].init_param(
@@ -480,31 +497,68 @@ class ProteinRNACellPop(CellPopulation):
 
             if e_type[0] == e_type[2] == "gene":  # Edges between genes
                 # RNA production depends on the concentration of parent proteins
-                rna_prod_rate = self["gene"].production_rate[:, :, 0:1]
+                rna_prod_rates = self["gene"].production_rates[:, :, 0:1]
                 protein_state = self["gene"].state[:, :, 1:2]
 
-                rna_prod_rate += self[e_type].simple_conv(
+                rna_prod_rates += self[e_type].simple_conv(
                     x=protein_state,
                     edge_index=self[e_type].edges.T,
                     edge_weight=self[e_type].weights,
                 )
             else:
                 # Regular message passing
-                self[tgt_n_type].production_rate += self[e_type].simple_conv(
+                self[tgt_n_type].production_rates += self[e_type].simple_conv(
                     x=self[src_n_type].state,
                     edge_index=self[e_type].edges.T,
                     edge_weight=self[e_type].weights,
                 )
 
         # Protein production depends on the concentration of the RNA coding for that protein
-        protein_prod_rate = self["gene"].production_rate[:, :, 1:2]
-        protein_prod_rate += (
-                self["gene"].translation_rate * self["gene"].state[:, :, 0:1]
+        protein_prod_rates = self["gene"].production_rates[:, :, 1:2]
+        protein_prod_rates += (
+            self["gene"].translation_rates * self["gene"].state[:, :, 0:1]
         )
 
     def compute_decay_rates(self):
         for n_type in self.node_types:
-            self[n_type].decay_rate = exponential_decay(
+            self[n_type].decay_rates = dc.exponential_decay(
+                self, n_type, alpha=self[n_type].alpha
+            )
+
+
+class Fantom5CovidCellPop(CellPopulation):
+    def __init__(self, n_cells: int = 1):
+        interaction_graph = load_interaction_data(
+            "fantom5_covid_related_subgraph",
+            realnet_tissue_type_file="15_myeloid_leukemia.txt.gz",
+        )
+
+        super().__init__(interaction_graph, n_cells=n_cells, per_node_state_dim=1)
+
+        # Initialize additional node attributes.
+        for n_type in ["TF_gene", "gene"]:
+            self[n_type].init_param(name="alpha", dist=Normal(5, 1))
+            self[n_type].init_param(name="translation_rates", dist=Normal(5, 1))
+        # Initialize additional edge attributes.
+        for e_type in self.edge_types:
+            self[e_type].init_param(name="weights", dist=Normal(0, 1))
+            self[e_type].simple_conv = SimpleConv(tgt_nodeset_len=len(self[e_type[2]]))
+
+    def compute_production_rates(self):
+        self.set_production_rates_to_zero()
+
+        for e_type in self.edge_types:
+            src_n_type, interaction_type, tgt_n_type = e_type
+            # Regular message passing
+            self[tgt_n_type].production_rates += self[e_type].simple_conv(
+                x=self[src_n_type].state,
+                edge_index=self[e_type].edges.T,
+                edge_weight=self[e_type].weights,
+            )
+
+    def compute_decay_rates(self):
+        for n_type in self.node_types:
+            self[n_type].decay_rates = dc.exponential_decay(
                 self, n_type, alpha=self[n_type].alpha
             )
 

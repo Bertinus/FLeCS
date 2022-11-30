@@ -87,8 +87,8 @@ def simulate_stochastic_trajectory(cells: CellPopulation, time_range: torch.Tens
     with torch.no_grad():
         for i in range(1, len(time_range)):
             tau = time_range[i] - time_range[i - 1]
-            production_rates = cells.get_production_rates(cells.state)
-            decay_rates = cells.get_decay_rates(cells.state)
+            production_rates = cells.get_production_rates()
+            decay_rates = cells.get_decay_rates()
 
             cells.state += torch.poisson(tau * production_rates) - torch.poisson(
                 tau * decay_rates

@@ -4,6 +4,8 @@ import networkx as nx
 import hashlib
 from typing import Dict
 from flecs.utils import get_project_root
+from flecs.data.gene_regulatory_networks import get_realnet_graph
+import pandas as pd
 import numpy as np
 
 ########################################################################################################################
@@ -99,6 +101,43 @@ def get_grn_string_composite_graph(
     composite_graph.add_edges_from(regulation_edges)
 
     return composite_graph
+
+
+def get_covid_related_realnet_subgraph(
+    path_to_file: str, subsample_edge_prop: float = 1.0
+):
+    """
+    Loads a realnet graph and keeps the subgraph on all TFs + all genes targeted by Sars-Cov-2.
+
+    Args:
+        path_to_file: path to the file to load.
+        subsample_edge_prop: Proportion of edges to keep.
+
+    Returns:
+        Subgraph as a networkx DiGraph object.
+
+    """
+    # Load Fantom5 myeloid leukemia
+    g = get_realnet_graph(
+        path_to_file=path_to_file,
+        tf_only=False,
+        subsample_edge_prop=subsample_edge_prop,
+    )
+
+    # Let us restrict ourselves to Transcription factors and genes targets by SarsCov2
+    covid_human_interactions = pd.read_csv(
+        os.path.join(get_project_root(), "datasets", "SarsCov2", "covid_krogan_ppi.csv")
+    )
+
+    genes_targeted_by_sarscov2 = covid_human_interactions["human_gene_hgnc_id"].unique()
+
+    kept_genes = [
+        k
+        for k, v in dict(g.nodes(data=True)).items()
+        if (v["name"] in genes_targeted_by_sarscov2 or v["type"] == "TF_gene")
+    ]
+
+    return g.subgraph(kept_genes)
 
 
 ########################################################################################################################

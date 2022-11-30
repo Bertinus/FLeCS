@@ -243,8 +243,11 @@ class InteractionData(nx.DiGraph):
 
         def assert_attributes_are_valid(d: dict):
             assert isinstance(d["type"], str)
-            for v in d.values():
-                if isinstance(v, torch.Tensor):
+            for k, v in d.items():
+                if isinstance(v, float) or isinstance(v, int):
+                    # If the attribute is a float or an int, convert to Tensor
+                    d[k] = torch.Tensor([v])[:, None]
+                elif isinstance(v, torch.Tensor):
                     assert v.shape[0] == 1
                 else:
                     assert isinstance(v, str)
@@ -301,7 +304,7 @@ class InteractionData(nx.DiGraph):
 
     def __repr__(self):
         string = (
-            "GraphData. "
+            "InteractionData. "
             + str(self.number_of_nodes())
             + " nodes and "
             + str(self.number_of_edges())

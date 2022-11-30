@@ -6,7 +6,10 @@ import networkx as nx
 from flecs.data.interaction_data import InteractionData
 from flecs.data.random_graphs import get_random_adjacency_mat, get_graph_from_adj_mat
 from flecs.data.gene_regulatory_networks import get_regulondb_graph, get_realnet_graph
-from flecs.data.composite_graphs import get_grn_string_composite_graph
+from flecs.data.composite_graphs import (
+    get_grn_string_composite_graph,
+    get_covid_related_realnet_subgraph,
+)
 from flecs.data.protein_interactions import get_string_graph
 from flecs.data.pathways import get_calcium_signaling_pathway
 from typing import List
@@ -52,7 +55,7 @@ def load_interaction_data(
 
     Args:
         interaction_type: available options: ["test", "calcium_pathway", "regulon_db", "encode", "fantom5", "string",
-            "composite", "random"].
+            "composite", "fantom5_covid_related_subgraph", "random"].
         realnet_tissue_type_file: only used when `interaction_type` is "fantom5" or "composite".
         tf_only: whether to restrict to transcription factor nodes only.
         subsample_edge_prop:
@@ -70,6 +73,7 @@ def load_interaction_data(
         "fantom5",
         "string",
         "composite",
+        "fantom5_covid_related_subgraph",
         "random",
     ]
 
@@ -176,6 +180,28 @@ def load_interaction_data(
 
         composite_graph = get_grn_string_composite_graph(fantom5_graph, string_graph)
         return InteractionData(composite_graph)
+
+    elif interaction_type == "fantom5_covid_related_subgraph":
+        assert tf_only is False
+
+        if realnet_tissue_type_file not in available_fantom5_tissue_type_files():
+            raise ValueError(
+                "When loading GRNs from fantom5, the 'realnet_tissue_type_file'"
+                "argument needs to be specified. To get available files, run:"
+                "'flecs.data.interaction_data.available_tissue_type_files()'"
+            )
+
+        fantom5_covid_subgraph = get_covid_related_realnet_subgraph(
+            path_to_file=os.path.join(
+                "RealNet",
+                "Network_compendium",
+                "Tissue-specific_regulatory_networks_FANTOM5-v1",
+                "32_high-level_networks",
+                realnet_tissue_type_file,
+            ),
+            subsample_edge_prop=subsample_edge_prop,
+        )
+        return InteractionData(fantom5_covid_subgraph)
 
     elif interaction_type == "random":
         assert n_nodes is not None, "Please specify 'n_nodes'."
