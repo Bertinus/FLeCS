@@ -46,7 +46,6 @@ def test_solver_consistent_with_euler_steps(my_cells):
     my_cells.state = 10 * torch.ones((1, 60, 1))
     solver_cell_traj = simulate_deterministic_trajectory(my_cells, time_range)
 
-    import IPython; IPython.embed()
     assert torch.isclose(
         solver_cell_traj.reshape(-1),
         euler_steps_cell_traj.reshape(-1),
