@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from flecs.cell_population import CellPopulation
 from typing import Dict, Tuple
 
+from flecs.cell_population import CellPopulation
 
 ########################################################################################################################
 # Intervention Abstract class
@@ -58,41 +58,3 @@ class CrisprIntervention(Intervention):
     def reset(self) -> None:
         for gene in self.intervened_edges.keys():
             self.cells[self.e_type].add_edges(*self.intervened_edges[gene])
-
-
-if __name__ == "__main__":
-    from flecs.trajectory import simulate_deterministic_trajectory
-    from flecs.utils import plot_trajectory, set_seed
-    import matplotlib.pyplot as plt
-    import torch
-    from flecs.cell_population import TestCellPop
-
-    set_seed(0)
-
-    cell_pop = TestCellPop()
-    intervention = CrisprIntervention(cell_pop)
-
-    # Simulate trajectory
-    cell_traj = simulate_deterministic_trajectory(cell_pop, torch.linspace(0, 1, 100))
-    plot_trajectory(cell_traj, legend=False)
-    plt.show()
-
-    # Intervene on gene 0
-    intervention.intervene(gene=0)
-    # Set initial state
-    cell_pop.state = 10 * torch.ones(cell_pop.state.shape)
-
-    # Simulate trajectory
-    cell_traj = simulate_deterministic_trajectory(cell_pop, torch.linspace(0, 1, 100))
-    plot_trajectory(cell_traj, legend=False)
-    plt.show()
-
-    # Reset intervention
-    intervention.reset()
-    # Set initial state
-    cell_pop.state = 10 * torch.ones(cell_pop.state.shape)
-
-    # Simulate trajectory
-    cell_traj = simulate_deterministic_trajectory(cell_pop, torch.linspace(0, 1, 100))
-    plot_trajectory(cell_traj, legend=False)
-    plt.show()
