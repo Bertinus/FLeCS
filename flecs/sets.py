@@ -1,19 +1,32 @@
 from __future__ import annotations
 import torch
 from typing import Dict
-import cell_population as cp
+import flecs.cell_population as cp
 
 
 class Set(torch.nn.Module):
 
     def is_element_level_attr(self, v):
+        """Element-level attributes have shape [n_cells, n_edges/nodes, ...]."""
         return (
             isinstance(v, torch.Tensor) and len(v.shape) > 1 and v.shape[1] == len(self)
+        )
+
+    def is_object_level_attr(self, v):
+        """
+        Object-level attributes have any other shape than [n_cells, n_edges/nodes, ...].
+        """
+        return (
+            isinstance(v, torch.Tensor) and not (len(v.shape) > 1 and v.shape[1] == len(self))
         )
 
     @property
     def element_level_attr_dict(self):
         return {k: v for k, v in self.__dict__.items() if self.is_element_level_attr(v)}
+
+    @property
+    def object_level_attr_dict(self):
+        return {k: v for k, v in self.__dict__.items() if self.is_object_level_attr(v)}
 
     def init_param(self, name: str, dist: torch.distributions.Distribution, shape=None):
         if shape is None:
@@ -129,7 +142,8 @@ class EdgeSet(Set):
                 tensor.
         """
         super().__init__()
-        # Initialize edge indices
+
+       # Initialize edge indices
         if edges is None:
             edges = torch.zeros((0, 2)).long()
         assert edges.shape[1] == 2 and len(edges.shape) == 2
@@ -185,6 +199,10 @@ class EdgeSet(Set):
         Args:
             indices: shape (n_edges) boolean.
         """
+        assert len(indices.shape) > 0, "indices should not be singleton."
+        if self.edges.shape[0] != len(indices):
+            raise IOError("indices should be a boolean matrix the length of all edges in this set.")
+
         to_be_kept = torch.logical_not(indices)
 
         for attr_name, attr_value in self.element_level_attr_dict.items():
