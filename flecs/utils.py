@@ -1,8 +1,13 @@
+"""
+This module contains a few utility functions.
+"""
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+import random
 import torch
+from typing import Union, List
 
 
 def get_project_root() -> Path:
@@ -14,13 +19,14 @@ def get_project_root() -> Path:
     return Path(__file__).parent.parent
 
 
-def set_seed(k):
+def set_seed(k: int):
     """
-    Sets the numpy and torch seeds.
+    Sets the random, numpy and torch seeds.
 
     Args:
         k: seed.
     """
+    random.seed(k)
     np.random.seed(k)
     torch.random.manual_seed(k)
 
@@ -30,14 +36,18 @@ def set_seed(k):
 ########################################################################################################################
 
 
-def plot_trajectory(trajectory, time_points=None, legend=True):
+def plot_trajectory(
+    trajectory: torch.Tensor,
+    time_points: Union[torch.Tensor, np.array, List] = None,
+    legend: bool = True,
+) -> None:
     """
     Function to plot the time evolution of the state of a cell.
 
     Args:
-        trajectory (torch.Tensor): States of the cell observed at the different time points.
-            Shape (n_time_points, 1, n_genes).
-        time_points (list or 1D numpy.array): Times of the observations.
+        trajectory (torch.Tensor): Shape (n_time_points, 1, n_nodes, node_state_dim) or
+            (n_time_points, n_nodes, node_state_dim). State of the cell observed at the different time points.
+        time_points (Union[torch.Tensor, np.array, List]): Shape (n_time_points). Times of the observations.
         legend (bool): Whether to add a legend to the plot.
 
     Raises:

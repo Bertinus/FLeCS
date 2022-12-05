@@ -7,11 +7,15 @@ import networkx as nx
 ########################################################################################################################
 
 
-def get_graph_from_adj_mat(adj_mat):
+def get_graph_from_adj_mat(adj_mat: np.array) -> nx.DiGraph:
     """
+    Given an adjacency matrix, initializes a networkx DiGraph with an empty "type" attribute for nodes and edges.
 
-    :param adj_mat: Numpy array of shape (n_nodes, n_nodes)
-    :return: graph initialized according to the adjacency matrix
+    Args:
+        adj_mat: Numpy array of shape (n_nodes, n_nodes)
+
+    Returns:
+        graph initialized according to the adjacency matrix
     """
 
     assert len(adj_mat.shape) == 2 and adj_mat.shape[0] == adj_mat.shape[1]
@@ -30,16 +34,19 @@ def get_graph_from_adj_mat(adj_mat):
     return graph
 
 
-def get_random_adjacency_mat(n_nodes, avg_num_parents):
+def get_random_adjacency_mat(n_nodes: int, avg_num_parents: int) -> np.array:
     """
-    Returns a random adjacency matrix of size (n_nodes, n_nodes) where each node has on average
-        'av_num_parents' parents. Moreover, we make sure that each node has at least one parent
+    Computes a random adjacency matrix of size (n_nodes, n_nodes) where each node has on average
+        'av_num_parents' parents. Moreover, we make sure that each node has at least one parent.
 
     Note that the resulting graph may not be acyclic, and self loops are allowed.
 
-    :param n_nodes: Number of nodes
-    :param avg_num_parents: Average number of parents for each node
-    :return: Numpy array of shape (n_nodes, n_nodes)
+    Args:
+        n_nodes: Number of nodes
+        avg_num_parents: Average number of parents for each node
+
+    Returns:
+        Numpy array of shape (n_nodes, n_nodes)
     """
     adj_mat = np.random.choice(
         [0, 1],

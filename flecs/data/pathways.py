@@ -1,12 +1,23 @@
-from Bio.KEGG.KGML.KGML_parser import read
-import networkx as nx
-import numpy as np
 import os
 from flecs.utils import get_project_root
+import networkx as nx
+from Bio.KEGG.KGML import KGML_parser
+import numpy as np
+
+########################################################################################################################
+# KEGG Calcium Signaling Pathway
+########################################################################################################################
 
 
-def load_calcium_signaling_pathway() -> nx.DiGraph:
-    pathway = read(
+def get_calcium_signaling_pathway() -> nx.DiGraph:
+    """
+    Loads the pathway of calcium signaling.
+
+    Returns:
+        nx.DiGraph: Pathway as a networkx DiGraph.
+
+    """
+    pathway = KGML_parser.read(
         open(os.path.join(get_project_root(), "datasets", "KEGG", "hsa04020.xml"), "r")
     )
 

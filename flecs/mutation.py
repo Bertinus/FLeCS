@@ -8,12 +8,71 @@ from flecs.sets import EdgeSet
 from typing import Union
 
 ########################################################################################################################
-# Mutation Abstract class
+# Mutation functions
 ########################################################################################################################
 
 
-def duplicate_attribute(obj: Union[CellPopulation, NodeSet, EdgeSet], attr_name: str, n_cells: int):
+def apply_bernoulli_mutation(
+    obj: Union[CellPopulation, NodeSet, EdgeSet], attr_name: str, p: float, n_cells: int
+) -> None:
+    """
+    Function which mutates a specific attribute of a CellPopulation/NodeSet/EdgeSet with probability *p*.
 
+    The attribute will first be duplicated so that each cell in the population gets its own copy of the attribute.
+    Mutations then happen with probability *p*, and independently for each cell.
+
+    A mutation corresponds to setting the cell-specific attribute to zero.
+
+    Args:
+        obj: CellPopulation/NodeSet/EdgeSet whose attribute we want to mutate.
+        attr_name: Name of the attribute we want to mutate.
+        p: Probability of mutation.
+        n_cells: Number of cells in the population.
+    """
+
+    duplicate_attribute(obj, attr_name, n_cells)
+    noise_dist = Bernoulli(1 - p)
+
+    attr_value = obj.element_level_attr_dict[attr_name]
+
+    obj.__setattr__(attr_name, attr_value * noise_dist.sample(attr_value.shape))
+
+
+def apply_gaussian_mutation(
+    obj: Union[CellPopulation, NodeSet, EdgeSet],
+    attr_name: str,
+    sigma: float,
+    n_cells: int,
+):
+    """
+    Function which mutates a specific attribute of a CellPopulation/NodeSet/EdgeSet by adding a gaussian noise.
+
+    The attribute will first be duplicated so that each cell in the population gets its own copy of the attribute.
+    Independent gaussian noises are then added to the cell-specific attributes.
+
+    Args:
+        obj: CellPopulation/NodeSet/EdgeSet whose attribute we want to mutate.
+        attr_name: Name of the attribute we want to mutate.
+        sigma: Standard deviation of the gaussian noise applied.
+        n_cells: Number of cells in the population.
+    """
+
+    duplicate_attribute(obj, attr_name, n_cells)
+    noise_dist = Normal(0, sigma)
+
+    attr_value = obj.element_level_attr_dict[attr_name]
+
+    obj.__setattr__(attr_name, attr_value + noise_dist.sample(attr_value.shape))
+
+
+########################################################################################################################
+# Auxiliary functions
+########################################################################################################################
+
+
+def duplicate_attribute(
+    obj: Union[CellPopulation, NodeSet, EdgeSet], attr_name: str, n_cells: int
+):
     assert n_cells > 1
 
     attr_value = obj.element_level_attr_dict[attr_name]
@@ -26,26 +85,6 @@ def duplicate_attribute(obj: Union[CellPopulation, NodeSet, EdgeSet], attr_name:
     duplicated_attr_value = torch.cat([attr_value] * n_cells, dim=0)
 
     obj.__setattr__(attr_name, duplicated_attr_value)
-
-
-def apply_bernoulli_mutation(obj: Union[CellPopulation, NodeSet, EdgeSet], attr_name: str, p: float, n_cells: int):
-
-    duplicate_attribute(obj, attr_name, n_cells)
-    noise_dist = Bernoulli(1 - p)
-
-    attr_value = obj.element_level_attr_dict[attr_name]
-
-    obj.__setattr__(attr_name, attr_value * noise_dist.sample(attr_value.shape))
-
-
-def apply_gaussian_mutation(obj: Union[CellPopulation, NodeSet, EdgeSet], attr_name: str, sigma: float, n_cells: int):
-
-    duplicate_attribute(obj, attr_name, n_cells)
-    noise_dist = Normal(0, sigma)
-
-    attr_value = obj.element_level_attr_dict[attr_name]
-
-    obj.__setattr__(attr_name, attr_value + noise_dist.sample(attr_value.shape))
 
 
 if __name__ == "__main__":
