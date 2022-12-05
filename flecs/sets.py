@@ -205,6 +205,8 @@ class EdgeSet(Set):
                 ),
             )
 
+        assert len(self.edges.shape) == len(edges.shape), \
+            "edge tensor to be added must have the same dimensions as the current edge set."
         self.edges = torch.cat((self.edges, edges))
 
     def remove_edges(self, indices: torch.Tensor):
