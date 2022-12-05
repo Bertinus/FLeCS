@@ -11,18 +11,18 @@ def test_sets():
         assert es.get_edges(i)[1]["rate"].numel() == 1
 
 
-def test_remove_edges():
-    es = EdgeSet(torch.rand((5, 2)), {"rate": torch.rand((5,))})
-
-    with pytest.raises(AssertionError):
-        es.remove_edges(torch.tensor(0))
-
-    with pytest.raises(IOError):
-        es.remove_edges(torch.tensor([0]))
-
-    # 5 edges - 2 edges = 3 edges.
-    es.remove_edges(torch.tensor([0, 1, 1, 0, 0]))
-    assert es.edges.shape[0] == 3
+# def test_remove_edges():
+#     es = EdgeSet(torch.rand((5, 2)), {"rate": torch.rand((5,))})
+#
+#     with pytest.raises(AssertionError):
+#         es.remove_edges(torch.tensor(0))
+#
+#     with pytest.raises(IOError):
+#         es.remove_edges(torch.tensor([0]))
+#
+#     # 5 edges - 2 edges = 3 edges.
+#     es.remove_edges(torch.tensor([0, 1, 1, 0, 0]))
+#     assert es.edges.shape[0] == 3
 
 
 def test_add_edges():
