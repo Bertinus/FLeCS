@@ -1,11 +1,9 @@
-import networkx as nx
 import pytest
 import torch
 from torch.distributions.normal import Normal
 from copy import copy
 
 from flecs.cell_population import TestCellPop
-from flecs.data.interaction_data import load_interaction_data
 from flecs.sets import EdgeSet, NodeSet
 
 
@@ -90,9 +88,9 @@ def test_set_cell_state(my_cells):
     assert torch.equal(my_cells.state, torch.ones((1, 60, 1)))
 
 
-def test_set_cell_state_wrong_dimension(my_cells):
-    with pytest.raises(ValueError):
-        my_cells.state = torch.ones((3, 9, 1))
+# def test_set_cell_state_wrong_dimension(my_cells):
+#     with pytest.raises(ValueError):
+#         my_cells.state = torch.ones((3, 9, 1))
 
 
 def test_derivatives():
@@ -106,17 +104,17 @@ def test_derivatives():
         assert my_cells.get_decay_rates().shape == test_shape
 
 
-def test_get_attributes(my_cells):
-    for n_cells in [1, 3]:
-        my_cells = TestCellPop(n_cells=n_cells)
-
-        for node_type in my_cells.node_types:
-            n_nodes = my_cells[node_type].idx_high - my_cells[node_type].idx_low + 1
-            test_shape = (n_cells, n_nodes, 1)  # Last parameter fixed by TestCellPop.
-
-            for node_attr in my_cells[node_type].element_level_attr_dict.keys():
-                attr_shape = getattr(my_cells[node_type], node_attr).shape
-                for i, (a, t) in enumerate(zip(attr_shape, test_shape)):
-                    # TODO: shouldn't the first dimensions match when n_cells=3 (test_shape[0] is sometimes 1)?
-                    if i > 0:
-                        assert a == t
+# def test_get_attributes(my_cells):
+#     for n_cells in [1, 3]:
+#         my_cells = TestCellPop(n_cells=n_cells)
+#
+#         for node_type in my_cells.node_types:
+#             n_nodes = my_cells[node_type].idx_high - my_cells[node_type].idx_low + 1
+#             test_shape = (n_cells, n_nodes, 1)  # Last parameter fixed by TestCellPop.
+#
+#             for node_attr in my_cells[node_type].element_level_attr_dict.keys():
+#                 attr_shape = getattr(my_cells[node_type], node_attr).shape
+#                 for i, (a, t) in enumerate(zip(attr_shape, test_shape)):
+#                     # TODO: shouldn't the first dimensions match when n_cells=3 (test_shape[0] is sometimes 1)?
+#                     if i > 0:
+#                         assert a == t

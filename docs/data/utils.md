@@ -1,9 +1,8 @@
-# Sets
+# Utils
 
-This module contains two classes, ``NodeSet`` and  ``EdgeSet``, which represent sets of nodes / edges of a given type.
-These classes inherit from a `Set` class which itself inherits from ``torch.nn.Module``.
+``flecs.data.utils``
 
-::: flecs.sets.NodeSet
+::: flecs.data.utils.load_interaction_data
     rendering:
         show_source: false
         heading_level: 2
@@ -13,7 +12,8 @@ These classes inherit from a `Set` class which itself inherits from ``torch.nn.M
         show_signature: true
         members_order: source
 
-::: flecs.sets.EdgeSet
+
+::: flecs.data.utils.available_fantom5_tissue_type_files
     rendering:
         show_source: false
         heading_level: 2

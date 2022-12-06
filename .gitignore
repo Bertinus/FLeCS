@@ -1,5 +1,5 @@
 *.egg-info
-#*.ipynb
+notebooks/local
 .coverage
 .vscode
 __pycache__
