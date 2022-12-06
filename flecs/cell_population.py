@@ -31,7 +31,7 @@ class CellPopulation(ABC, torch.nn.Module):
         self.initialize_from_interaction_graph(interaction_graph)
 
         # Create state and production/decay rates as empty tensors
-        self.state = torch.empty((n_cells, self.n_nodes, per_node_state_dim))
+        self._state = torch.empty((n_cells, self.n_nodes, per_node_state_dim))
         self.decay_rates = torch.empty((n_cells, self.n_nodes, per_node_state_dim))
         self.production_rates = torch.empty((n_cells, self.n_nodes, per_node_state_dim))
 
@@ -39,10 +39,10 @@ class CellPopulation(ABC, torch.nn.Module):
         self.reset_state()
 
     def sample_from_state_prior_dist(self):
-        return 10 * torch.ones(self.state.shape)
+        return 10 * torch.ones(self._state.shape)
 
     def reset_state(self):
-        self.state = self.sample_from_state_prior_dist()
+        self._state = self.sample_from_state_prior_dist()
         self.production_rates = torch.empty(self.production_rates.shape)
         self.decay_rates = torch.empty(self.decay_rates.shape)
 
@@ -68,7 +68,7 @@ class CellPopulation(ABC, torch.nn.Module):
 
     @property
     def n_cells(self) -> int:
-        return self.state.shape[0]
+        return self._state.shape[0]
 
     @property
     def n_nodes(self) -> int:
@@ -100,8 +100,22 @@ class CellPopulation(ABC, torch.nn.Module):
 
     def get_derivatives(self, state):
         """Estimates derivative of system using first differences."""
-        self.state = state
+        self._state = state
         return self.get_production_rates() - self.get_decay_rates()
+
+    @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, s: torch.Tensor):
+        if s.shape != self.state.shape:
+            raise ValueError(
+                "Dimension mismatch: New tensor's dimensions s.shape= {} must match "
+                "attribute.dim= {}".format(s.shape, self.state.shape)
+            )
+        self._state = s
+
 
     def get_node_set(self, n_type_data):
         """Given node type data, return a node set with the associated attributes."""
