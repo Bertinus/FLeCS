@@ -64,7 +64,7 @@ class CellPopulation(ABC, torch.nn.Module):
         self.initialize_from_interaction_graph(interaction_graph)
 
         # Create state and production/decay rates as empty tensors
-        self.state = torch.empty((n_cells, self.n_nodes, per_node_state_dim))
+        self._state = torch.empty((n_cells, self.n_nodes, per_node_state_dim))
         self.decay_rates = torch.empty((n_cells, self.n_nodes, per_node_state_dim))
         self.production_rates = torch.empty((n_cells, self.n_nodes, per_node_state_dim))
 
