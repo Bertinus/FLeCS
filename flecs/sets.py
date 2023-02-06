@@ -12,7 +12,7 @@ class Set(torch.nn.Module):
                 else:
                     assert isinstance(attr_value, torch.Tensor)
                     if len(attr_value.shape) == 1 and attr_value.shape[0] == len(self):
-                        attr_value = attr_value[None, :]
+                        attr_value = attr_value[None, :, None]
 
                 self.__setattr__(attr_name, attr_value)
 
@@ -26,7 +26,7 @@ class Set(torch.nn.Module):
 
     @property
     def element_level_attr_dict(self):
-        return {k: v for k, v in self.__dict__.items() if self.is_element_level_attr(v)}
+        return {k: v for k, v in self.__dict__.items() if self.is_element_level_attr(v) and k != "edges"}
 
     def init_param(self, name: str, dist: torch.distributions.Distribution, shape=None):
         if shape is None:
@@ -277,3 +277,43 @@ class EdgeSet(Set):
             len(self.edges),
             list({k: v for k, v in self.element_level_attr_dict.items() if k != "edges"}.keys())
         )
+
+
+if __name__ == "__main__":
+
+    from flecs.cell_population import CellPopulation
+    import networkx as nx
+    import torch_scatter
+
+    class MyCellPop(CellPopulation):
+        def __init__(self):
+            g = nx.DiGraph()
+            g.add_node(1, type="gene", name="G1", dummy_value=1.)
+            g.add_node(2, type="gene", name="G2", dummy_value=2.)
+
+            g.add_edge(1, 1, type="regulates", weight=.01)
+            g.add_edge(2, 2, type="regulates", weight=1.)
+            g.add_edge(1, 2, type="regulates", weight=-1.)
+
+            super().__init__(g, scale_factor_state_prior=0.1)
+
+        def compute_production_rates(self):
+            edges = self["gene", "regulates", "gene"]
+            genes = self["gene"]
+
+            parent_indices = edges.tails
+            children_indices = edges.heads
+
+            messages = edges.weight * genes.state[:, parent_indices]
+
+            genes.production_rates = torch.sigmoid(torch_scatter.scatter(messages, children_indices, dim=1))
+
+        def compute_decay_rates(self):
+            # All tracked molecules have an exponential decay rate
+            ALPHA = 0.1
+            self['gene'].decay_rates = ALPHA * self["gene"].state
+
+
+    my_cell_pop = MyCellPop()
+
+    print("toto")

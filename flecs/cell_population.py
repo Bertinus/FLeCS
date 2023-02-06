@@ -339,6 +339,39 @@ class CellPopulation(ABC, torch.nn.Module):
         for name, param in self.named_parameters(recurse=recurse):
             yield param
 
+    def get_interaction_data(self):
+        g = nx.DiGraph()
+        for n_type in self.node_types:
+            n_set = self[n_type]
+            n_set_attr_dict = self[n_type].element_level_attr_dict
+
+            n_set_list_attr_dict = {k: v for k, v in n_set_attr_dict.items() if isinstance(v, list)}
+            n_set_tensor_attr_dict = {k: v for k, v in n_set_attr_dict.items() if not isinstance(v, list)}
+
+            for idx in range(n_set.idx_low, n_set.idx_high):
+                node_list_attr = {k: v[idx - n_set.idx_low] for k, v in n_set_list_attr_dict.items()}
+                node_tensor_attr = {k: v[:, idx - n_set.idx_low] for k, v in n_set_tensor_attr_dict.items()}
+                g.add_node(idx, type=n_type, **node_list_attr, **node_tensor_attr)
+
+        for e_type in self.edge_types:
+            e_set = self[e_type]
+            e_set_attr_dict = self[e_type].element_level_attr_dict
+
+            e_set_list_attr_dict = {k: v for k, v in e_set_attr_dict.items() if isinstance(v, list)}
+            e_set_tensor_attr_dict = {k: v for k, v in e_set_attr_dict.items() if not isinstance(v, list)}
+
+            for e_idx in range(len(e_set)):
+                edge_list_attr = {k: v[e_idx] for k, v in e_set_list_attr_dict.items()}
+                edge_tensor_attr = {k: v[:, e_idx] for k, v in e_set_tensor_attr_dict.items()}
+                src_idx = int(e_set.edges[e_idx, 0] + self[e_type[0]].idx_low)
+                tgt_idx = int(e_set.edges[e_idx, 1] + self[e_type[2]].idx_low)
+                g.add_edge(src_idx, tgt_idx, type=e_type[1], **edge_list_attr, **edge_tensor_attr)
+
+        return InteractionData(g)
+
+    def draw(self):
+        self.get_interaction_data().draw()
+
     def __repr__(self):
         return "CellPopulation. {} nodes and {} cells.\n".format(
             self.n_nodes, self.n_cells
@@ -398,8 +431,8 @@ class TestCellPop(CellPopulation):
         super().__init__(interaction_graph, n_cells=n_cells)
 
         # Initialize additional node attributes.
-        self["gene"].init_param(name="alpha", dist=Normal(5, 0.01))
-        self["compound"].init_param(name="alpha", dist=Normal(5, 0.01))
+        self["gene"].init_param(name="alpha", dist=Normal(5, 1))
+        self["compound"].init_param(name="alpha", dist=Normal(5, 1))
 
         # Initialize additional edge attributes.
         for e_type in self.edge_types:
@@ -572,6 +605,10 @@ if __name__ == "__main__":
 
     # Simulate trajectories.
     cell_pop = ProteinRNACellPop()
+
+    cell_pop.draw()
+    plt.show()
+
     cell_traj = simulate_deterministic_trajectory(cell_pop, torch.linspace(0, 1, 100))
 
     plot_trajectory(cell_traj, legend=False)

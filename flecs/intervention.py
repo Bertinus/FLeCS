@@ -41,7 +41,7 @@ class CrisprIntervention(Intervention):
     def __init__(
         self,
         cells: CellPopulation,
-        e_type: Tuple[str, str, str] = ("gene", "activation", "gene"),
+        e_type: Tuple[str, str, str] = ("gene", "regulates", "gene"),
     ):
         """
         Intervention class where intervening on a node corresponds to removing all its outgoing edges.
