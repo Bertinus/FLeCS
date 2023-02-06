@@ -246,7 +246,7 @@ class InteractionData(nx.DiGraph):
             for k, v in d.items():
                 if isinstance(v, float) or isinstance(v, int):
                     # If the attribute is a float or an int, convert to Tensor
-                    d[k] = torch.Tensor([v])[:, None]
+                    d[k] = torch.Tensor([v])
                 elif isinstance(v, torch.Tensor):
                     assert v.shape[0] == 1
                 else:
