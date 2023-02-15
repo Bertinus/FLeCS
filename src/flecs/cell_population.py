@@ -238,7 +238,7 @@ class CellPopulation(ABC, torch.nn.Module):
         added_node_shape = (self.n_cells, n_added_nodes, self.state.shape[2])
         added_state = self.sample_from_state_prior_dist(added_node_shape)
 
-        self.state = torch.cat([self.state, added_state], dim=1)
+        self._state = torch.cat([self._state, added_state], dim=1)
 
         # Production and decay rates also get extended
         self.production_rates = torch.cat(
@@ -283,7 +283,7 @@ class CellPopulation(ABC, torch.nn.Module):
         node_set_to_be_del = self[n_type]
 
         # Remove the corresponding state / production rates / decay rates
-        self.state = torch.cat(
+        self._state = torch.cat(
             [
                 self.state[:, : node_set_to_be_del.idx_low],
                 self.state[:, node_set_to_be_del.idx_high :],
