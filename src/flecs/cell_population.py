@@ -73,6 +73,10 @@ class CellPopulation(ABC, torch.nn.Module):
         # Initialize
         self.reset_state()
 
+    @property
+    def state(self):
+        return self._state
+
     def sample_from_state_prior_dist(self, shape=None) -> torch.Tensor:
         """
         Method which samples from the prior distribution of the state of the cell population.
@@ -93,7 +97,7 @@ class CellPopulation(ABC, torch.nn.Module):
         """
         Resets the state, production_rates and decay_rates attributes of the cell population.
         """
-        self.state = self.sample_from_state_prior_dist()
+        self._state = self.sample_from_state_prior_dist()
         self.production_rates = torch.empty(self.state.shape)
         self.decay_rates = torch.empty(self.state.shape)
 
@@ -174,7 +178,7 @@ class CellPopulation(ABC, torch.nn.Module):
         Returns:
             time derivatives of all the tracked properties of the Cell Population.
         """
-        self.state = state
+        self._state = state
         return self.get_production_rates() - self.get_decay_rates()
 
     def _get_node_set(self, n_type_data: SetData) -> sets.NodeSet:

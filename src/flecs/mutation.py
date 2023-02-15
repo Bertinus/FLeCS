@@ -1,5 +1,6 @@
 from torch.distributions.bernoulli import Bernoulli
 from torch.distributions.normal import Normal
+import torch
 
 from flecs.cell_population import CellPopulation
 from flecs.sets import NodeSet
