@@ -127,63 +127,46 @@ class CellPopulation(ABC, torch.nn.Module):
 
     @property
     def n_cells(self) -> int:
-        """
-        (`int`): Number of cells in the population
-        """
+        """(`int`): Number of cells in the population"""
         return self.state.shape[0]
 
     @property
     def n_nodes(self) -> int:
-        """
-        (`int`): Number of nodes in the underlying cell mechanisms.
-        """
+        """(`int`): Number of nodes in the underlying cell mechanisms."""
         return sum([len(node_set) for node_set in self._node_set_dict.values()])
 
     @property
     def node_types(self) -> List[str]:
-        """
-        (`List[str]`): List the different types of nodes. Each node type is associated with a NodeSet object.
-        """
+        """(`List[str]`): List the different types of nodes. Each node type is associated with a NodeSet object."""
         return list(self._node_set_dict.keys())
 
     @property
     def edge_types(self) -> List[Tuple[str, str, str]]:
-        """
-        (`List[str]`): List the different types of edges. Each edge type is associated with an EdgeSet object.
-        """
+        """(`List[str]`): List the different types of edges. Each edge type is associated with an EdgeSet object."""
         return list(self._edge_set_dict.keys())
 
     @abstractmethod
     def compute_production_rates(self) -> None:
-        """
-        Abstract method. Should update `self.production_rates`
-        """
+        """Abstract method. Should update `self.production_rates`"""
         pass
 
     @abstractmethod
     def compute_decay_rates(self) -> None:
-        """
-        Abstract method. Should update `self.decay_rates`
-        """
+        """Abstract method. Should update `self.decay_rates`"""
         pass
 
     def get_production_rates(self) -> torch.Tensor:
-        """
-        Computes and returns the production rates of the system.
-        """
+        """Computes and returns the production rates of the system."""
         self.compute_production_rates()
         return self.production_rates
 
     def get_decay_rates(self) -> torch.Tensor:
-        """
-        Computes and returns the decay rates of the system.
-        """
+        """Computes and returns the decay rates of the system."""
         self.compute_decay_rates()
         return self.decay_rates
 
     def get_derivatives(self, state: torch.Tensor) -> torch.Tensor:
-        """
-        Computes and returns the time derivatives of the system for a given state.
+        """Computes and returns the time derivatives of the system for a given state.
 
         Args:
             state: State of the Cell Population for which derivatives should be computed.
@@ -219,7 +202,8 @@ class CellPopulation(ABC, torch.nn.Module):
     def initialize_from_interaction_graph(
         self, interaction_graph: InteractionData
     ) -> None:
-        """
+        """Initalizaes NodeSet and EdgeSets from an InteractionData object.
+
         Args:
             interaction_graph: Interaction graph from which `NodeSet` and `EdgeSet` objects should be initialized.
         """
@@ -233,18 +217,16 @@ class CellPopulation(ABC, torch.nn.Module):
             self[e_type] = self._get_edge_set(e_type, e_type_data)
 
     def set_production_rates_to_zero(self) -> None:
-        """
-        Sets production rates to zero.
-        """
+        """Sets all production rates for all nodes to zero."""
         for n_type in self.node_types:
             self[n_type].production_rates = torch.zeros(
                 self[n_type].production_rates.shape
             )
 
     def _extend_state(self, n_added_nodes: int) -> None:
-        """
-        Method which appends a number of nodes to the state of the cell population. The shapes of the production rates
-        and decay rates get updated accordingly.
+        """Appends a number of nodes initialized to the state of the cell population.
+
+        The shapes of the production rates and decay rates get updated accordingly.
 
         Args:
             n_added_nodes: Number of nodes to be added
@@ -268,8 +250,7 @@ class CellPopulation(ABC, torch.nn.Module):
         n_added_nodes: int,
         attribute_dict: Dict[str, torch.Tensor] = None,
     ):
-        """
-        Adds a node set object to the cell population.
+        """Adds a node set object to the cell population.
 
         Args:
             n_type: Name of the node type to be added.
@@ -286,9 +267,9 @@ class CellPopulation(ABC, torch.nn.Module):
         )
 
     def _delete_node_set(self, n_type: str) -> None:
-        """
-        Removes a node set from the cell population object. The state / production rates / decay rates
-        get truncated accordingly.
+        """Removes a node set from the cell population object.
+
+        The state / production rates / decay rates get truncated accordingly.
 
         Args:
             n_type: Node type to be removed.
@@ -332,6 +313,7 @@ class CellPopulation(ABC, torch.nn.Module):
                 self[other_n_type].idx_high -= len(node_set_to_be_del)
 
     def parameters(self, recurse: bool = True):
+        """Yields all cell population parameters."""
         for k, n_set in self._node_set_dict.items():
             yield from n_set.parameters(recurse=recurse)
         for k, e_set in self._edge_set_dict.items():
@@ -341,6 +323,7 @@ class CellPopulation(ABC, torch.nn.Module):
 
     def get_interaction_data(self):
         g = nx.DiGraph()
+
         for n_type in self.node_types:
             n_set = self[n_type]
             n_set_attr_dict = self[n_type].element_level_attr_dict
