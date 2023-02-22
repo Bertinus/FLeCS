@@ -1,0 +1,106 @@
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+
+[project]
+name = "flecs"
+version = "0.1"
+description = "Flexible and Learnable Cell Simulator for Computational Biology"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Paul Bertin, Joseph Viviano"},
+]
+maintainers = [
+    {
+        name = "Paul Bertin", email = "paul.f.bertin@gmail.com ",
+        name = "Joseph Viviano", email = "joseph@viviano.ca ",
+    },
+]
+urls.Documentation = "https://bertinus.github.io/FLeCS/"
+urls.Source = "flecs"
+urls.Home-page = "flecs"
+dependencies = [
+    "anndata",
+    # for debug logging (referenced from the issue template)
+    "session-info"
+]
+
+[project.optional-dependencies]
+dev = [
+    # CLI for bumping the version number
+    "bump2version",
+    "pre-commit",
+    "twine>=4.0.2"
+]
+doc = [
+    "mkdocs",
+    # For notebooks
+    "ipykernel",
+    "ipython",
+    "sphinx-copybutton",
+]
+test = [
+    "pytest",
+    "pytest-cov",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ['src/flecs']
+
+[tool.coverage.run]
+source = ["flecs"]
+omit = [
+    "**/test_*.py",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+xfail_strict = true
+addopts = [
+    "--import-mode=importlib",  # allow using test files with same name
+]
+
+[tool.isort]
+include_trailing_comma = true
+multi_line_output = 3
+profile = "black"
+skip_glob = ["docs/*"]
+
+[tool.black]
+line-length = 120
+target-version = ['py38']
+include = '\.pyi?$'
+exclude = '''
+(
+  /(
+      \.eggs
+    | \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+)
+'''
+
+[tool.jupytext]
+formats = "ipynb,md"
+
+[tool.cruft]
+skip = [
+    "tests",
+    "src/**/__init__.py",
+    "src/**/basic.py",
+    "docs/api.md",
+    "docs/changelog.md",
+    "docs/references.bib",
+    "docs/references.md",
+    "docs/notebooks/example.ipynb"
+]
