@@ -16,7 +16,7 @@ def get_project_root() -> Path:
         str: Path to the root of the project.
 
     """
-    return Path(__file__).parent.parent
+    return Path(__file__).parent.parent.parent
 
 
 def set_seed(k: int):
@@ -40,6 +40,7 @@ def plot_trajectory(
     trajectory: torch.Tensor,
     time_points: Union[torch.Tensor, np.array, List] = None,
     legend: bool = True,
+    title: str = "",
 ) -> None:
     """
     Function to plot the time evolution of the state of a cell.
@@ -49,6 +50,7 @@ def plot_trajectory(
             (n_time_points, n_nodes, node_state_dim). State of the cell observed at the different time points.
         time_points (Union[torch.Tensor, np.array, List]): Shape (n_time_points). Times of the observations.
         legend (bool): Whether to add a legend to the plot.
+        title (str): Optional title for the plot.
 
     Raises:
         RuntimeWarning: If the trajectory contains more than one cell. Only the trajectory of the first cell is plotted.
@@ -70,8 +72,14 @@ def plot_trajectory(
             plt.plot(time_points, trajectory[:, 0, gene], label="gene " + str(gene))
         else:
             plt.plot(trajectory[:, 0, gene], label="gene " + str(gene))
+
     plt.xlabel("time")
     plt.ylabel("gene expressions")
+
     if legend:
         plt.legend()
+
+    if title:
+        plt.title(title)
+
     plt.grid()

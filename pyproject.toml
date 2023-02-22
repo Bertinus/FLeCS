@@ -14,10 +14,8 @@ authors = [
     {name = "Paul Bertin, Joseph Viviano"},
 ]
 maintainers = [
-    {
-        name = "Paul Bertin", email = "paul.f.bertin@gmail.com ",
-        name = "Joseph Viviano", email = "joseph@viviano.ca ",
-    },
+    {name = "Paul Bertin", email = "paul.f.bertin@gmail.com "},
+    {name = "Joseph Viviano", email = "joseph@viviano.ca "},
 ]
 urls.Documentation = "https://bertinus.github.io/FLeCS/"
 urls.Source = "flecs"
