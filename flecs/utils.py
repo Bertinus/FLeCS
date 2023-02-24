@@ -16,7 +16,7 @@ def get_project_root() -> Path:
         str: Path to the root of the project.
 
     """
-    return Path(__file__).parent.parent.parent
+    return Path(__file__).parent.parent
 
 
 def set_seed(k: int):
