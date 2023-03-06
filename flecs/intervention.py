@@ -1,13 +1,14 @@
-from abc import ABC, abstractmethod
-from flecs.cell_population import CellPopulation
-from typing import Dict, Tuple
-from flecs.sets import NodeSet, EdgeSet
-from torch.distributions import Normal
-from flecs.production import SimpleConv
 import os
-import pandas as pd
-from flecs.utils import get_project_root
+from abc import ABC, abstractmethod
+from typing import Dict, Tuple
 
+import pandas as pd
+from torch.distributions import Normal
+
+from flecs.cell_population import CellPopulation
+from flecs.production import SimpleConv
+from flecs.sets import EdgeSet, NodeSet
+from flecs.utils import get_project_root
 
 ########################################################################################################################
 # Intervention Abstract class
@@ -37,49 +38,7 @@ class Intervention(ABC):
 ########################################################################################################################
 
 
-class CrisprIntervention(Intervention):
-    def __init__(
-        self,
-        cells: CellPopulation,
-        e_type: Tuple[str, str, str] = ("gene", "regulates", "gene"),
-    ):
-        """
-        Intervention class where intervening on a node corresponds to removing all its outgoing edges.
-
-        This can be used to simulate CRISPR-Cas9 knock-outs where the sequence of the intervened gene is changed,
-        resulting in a complete loss of function of the gene products.
-
-        Args:
-            cells: CellPopulation object to which interventions should be applied.
-            e_type: Edge type considered for edge removal.
-        """
-        self.cells = cells
-        self.e_type = e_type
-        self.intervened_edges: Dict[int, tuple] = {}
-
-    def intervene(self, gene: int) -> None:
-        """
-        Args:
-            gene: Gene whose outgoing edges are removed
-        """
-        if gene in self.intervened_edges.keys():
-            raise ValueError("Gene {} has already been knocked out".format(gene))
-
-        out_edges_indices = self.cells[self.e_type].out_edges(gene)
-
-        # Save the removed edges
-        self.intervened_edges[gene] = self.cells[self.e_type].get_edges(
-            out_edges_indices
-        )
-
-        # Remove edges from the CellPopulation object
-        self.cells[self.e_type].remove_edges(out_edges_indices)
-
-    def reset(self) -> None:
-        for gene in self.intervened_edges.keys():
-            self.cells[self.e_type].add_edges(*self.intervened_edges[gene])
-
-
+# TODO: Generalize Add Virus.
 class SARSCov2Intervention(Intervention):
     def __init__(
         self,
@@ -184,11 +143,12 @@ class SARSCov2Intervention(Intervention):
 
 
 if __name__ == "__main__":
-    from flecs.trajectory import simulate_deterministic_trajectory
-    from flecs.utils import plot_trajectory, set_seed
     import matplotlib.pyplot as plt
     import torch
+
     from flecs.cell_population import Fantom5CovidCellPop
+    from flecs.trajectory import simulate_deterministic_trajectory
+    from flecs.utils import plot_trajectory, set_seed
 
     set_seed(0)
 

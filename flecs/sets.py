@@ -82,11 +82,24 @@ class NodeSet(Set):
         """
         return self._super_cell.state[:, self.idx_low : self.idx_high]
 
+    @property
+    def state_mask(self) -> torch.Tensor:
+        """
+        (`torch.Tensor`) State mask of the nodes included in this NodeSet.
+        """
+        return self._super_cell._state_mask[:, self.idx_low : self.idx_high]
+
     @state.setter
     def state(self, state: Union[torch.Tensor, float]):
         if isinstance(state, torch.Tensor):
             assert state.shape == self.state.shape
         self._super_cell.state[:, self.idx_low : self.idx_high] = state
+
+    @state_mask.setter
+    def state_mask(self, state_mask: Union[torch.Tensor, float]):
+        if isinstance(state_mask, torch.Tensor):
+            assert state_mask.shape == self.state_mask.shape
+        self._super_cell.state_mask[:, self.idx_low : self.idx_high] = state_mask
 
     @property
     def decay_rates(self) -> torch.Tensor:

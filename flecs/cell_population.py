@@ -1,15 +1,17 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
-import flecs.sets as sets
-from typing import Tuple, Dict, Union, List
-from flecs.data.utils import load_interaction_data
-from flecs.data.interaction_data import InteractionData, SetData, EdgeType
-from torch.distributions.normal import Normal
-import flecs.decay as dc
-import networkx as nx
-from flecs.production import SimpleConv
-import torch
 
+from abc import ABC, abstractmethod
+from typing import Dict, List, Tuple, Union
+
+import networkx as nx
+import torch
+from torch.distributions.normal import Normal
+
+import flecs.decay as dc
+import flecs.sets as sets
+from flecs.data.interaction_data import EdgeType, InteractionData, SetData
+from flecs.data.utils import load_interaction_data
+from flecs.production import SimpleConv
 
 ########################################################################################################################
 # Cell Population abstract class
@@ -27,7 +29,7 @@ class CellPopulation(ABC, torch.nn.Module):
         """
         A population of cells. The mechanisms of cells are based on a graph with different types of nodes and edges.
         Cell dynamics can be computed based on these mechanisms.
-
+`
         * Examples of node types include "proteins", "small molecules", "gene/RNA".
         * Examples of edge types include ("gene", "activates", "gene"), ("protein", "catalyses", "small molecule").
 
@@ -43,6 +45,9 @@ class CellPopulation(ABC, torch.nn.Module):
         To define your own `CellPopulation` class inheriting from this class, you need to implement the two methods
         `compute_production_rates` and `compute_decay_rates`. You may also want to override
         `sample_from_state_prior_dist` in order to choose your own prior distribution over the state of cells.
+
+        Edge and node-level inverventions are implemented as part of this base class.
+        TOOD: Explain functionality.
 
         Args:
             interaction_graph: Graph on which the mechanisms of cells will be based.
@@ -65,6 +70,8 @@ class CellPopulation(ABC, torch.nn.Module):
 
         # Create state and production/decay rates as empty tensors
         self._state = torch.empty((n_cells, self.n_nodes, per_node_state_dim))
+        self._state_mask = torch.ones((n_cells, self.n_nodes, per_node_state_dim))
+
         self.decay_rates = torch.empty((n_cells, self.n_nodes, per_node_state_dim))
         self.production_rates = torch.empty((n_cells, self.n_nodes, per_node_state_dim))
 
@@ -73,9 +80,9 @@ class CellPopulation(ABC, torch.nn.Module):
         # Initialize
         self.reset_state()
 
-    @property
-    def state(self):
-        return self._state
+        # Keeps track of edge-level interventions.
+        self._intervened_edges = {} #  Dict[int, tuple] = {}
+
 
     def sample_from_state_prior_dist(self, shape=None) -> torch.Tensor:
         """
@@ -130,6 +137,16 @@ class CellPopulation(ABC, torch.nn.Module):
             self._delete_node_set(key)
 
     @property
+    def state(self):
+        """(`List[tensor]`): Tensors containing the cell population's full state."""
+        return self._state
+
+    @property
+    def state_mask(self):
+        """(`List[tensor]`): Tensors for masking elements of the state."""
+        return self._state_mask
+
+    @property
     def n_cells(self) -> int:
         """(`int`): Number of cells in the population"""
         return self.state.shape[0]
@@ -148,6 +165,11 @@ class CellPopulation(ABC, torch.nn.Module):
     def edge_types(self) -> List[Tuple[str, str, str]]:
         """(`List[str]`): List the different types of edges. Each edge type is associated with an EdgeSet object."""
         return list(self._edge_set_dict.keys())
+
+    @property
+    def intervened_edges(self) -> Dict[int, tuple]:
+        """(`Dict[int, tuple]`): Dict of different edges removed from the graph."""
+        return self._intervened_edges
 
     @abstractmethod
     def compute_production_rates(self) -> None:
@@ -178,7 +200,7 @@ class CellPopulation(ABC, torch.nn.Module):
         Returns:
             time derivatives of all the tracked properties of the Cell Population.
         """
-        self._state = state
+        self._state = state * self.state_mask
         return self.get_production_rates() - self.get_decay_rates()
 
     def _get_node_set(self, n_type_data: SetData) -> sets.NodeSet:
@@ -227,6 +249,12 @@ class CellPopulation(ABC, torch.nn.Module):
                 self[n_type].production_rates.shape
             )
 
+    def set_state_mask_to_one(self) -> None:
+        """Sets all state_masks for all nodes to one."""
+        for n_type in self.node_types:
+            self[n_type]._state_mask = torch.ones(self[n_type]._state_mask.shape)
+
+
     def _extend_state(self, n_added_nodes: int) -> None:
         """Appends a number of nodes initialized to the state of the cell population.
 
@@ -240,12 +268,15 @@ class CellPopulation(ABC, torch.nn.Module):
 
         self._state = torch.cat([self._state, added_state], dim=1)
 
-        # Production and decay rates also get extended
+        # Production, decay rates & state mask also get extended
         self.production_rates = torch.cat(
             [self.production_rates, torch.empty(added_node_shape)], dim=1
         )
         self.decay_rates = torch.cat(
             [self.decay_rates, torch.empty(added_node_shape)], dim=1
+        )
+        self._state_mask = torch.cat(
+            [self._state_mask, torch.ones(added_node_shape)], dim=1
         )
 
     def append_node_set(
@@ -287,6 +318,14 @@ class CellPopulation(ABC, torch.nn.Module):
             [
                 self.state[:, : node_set_to_be_del.idx_low],
                 self.state[:, node_set_to_be_del.idx_high :],
+            ],
+            dim=1,
+        )
+
+        self._state_mask = torch.cat(
+            [
+                self.state_mask[:, : node_set_to_be_del.idx_low],
+                self.state_mask[:, node_set_to_be_del.idx_high :],
             ],
             dim=1,
         )
@@ -355,6 +394,49 @@ class CellPopulation(ABC, torch.nn.Module):
                 g.add_edge(src_idx, tgt_idx, type=e_type[1], **edge_list_attr, **edge_tensor_attr)
 
         return InteractionData(g)
+
+    def _remove_edges(self, gene, edge_type) -> None:
+        """Remove an outgoing edge of a particular type."""
+        # Gets all outgoing edges of a particular type from the gene.
+        out_edges_indices = self[edge_type].out_edges(gene)
+
+        # Save the removed edges so we can restore them later, then remove.
+        if edge_type not in self.intervened_edges:
+            self._intervened_edges[edge_type] = {}
+
+        self._intervened_edges[edge_type][gene] = self[edge_type].get_edges(out_edges_indices)
+        self[self.e_type].remove_edges(out_edges_indices)
+
+    def knockout_edges(self, gene, edge_type=None) -> None:
+        """
+        Args:
+            gene: Gene whose outgoing edges are removed.
+        """
+
+        if gene in self.intervened_edges.keys():
+            raise ValueError("Gene {} has already been knocked out".format(gene))
+
+        # TODO: optionally remove all outgoing edges in a loop.
+        # Remove all outgoing edges
+        if edge_type:
+            assert edge_type in self.edge_types
+            self._remove_edges(gene, edge_type)
+
+    # Each edgetype needs their own name.
+    def reset_remove_edge(self) -> None:
+        for edge_type in self.intervened_edges.keys():
+            for gene in self.intervened_edges[edge_type].keys():
+                self[edge_type].add_edges(*self.intervened_edges[edge_type][gene])
+
+    def knockout_gene(self, idx) -> None:
+        """Zeros out the state of the gene for all timesteps."""
+        assert 0 <= idx < self.n_genes
+        self["gene"].state_mask[:, idx, :] = 0
+
+    def restore_gene(self, idx) -> None:
+        """Permits the state of the gene for all timesteps."""
+        assert 0 <= idx < self.n_genes
+        self["gene"].state_mask[:, idx, :] = 1
 
     def draw(self):
         self.get_interaction_data().draw()
@@ -584,9 +666,10 @@ class Fantom5CovidCellPop(CellPopulation):
 
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+
     from flecs.trajectory import simulate_deterministic_trajectory
     from flecs.utils import plot_trajectory, set_seed
-    import matplotlib.pyplot as plt
 
     set_seed(0)
 
