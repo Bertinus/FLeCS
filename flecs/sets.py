@@ -1,6 +1,7 @@
 import torch
 from typing import Dict, Tuple
 from typing import Union, List
+from flecs.production import SimpleConv
 
 
 class Set(torch.nn.Module):
@@ -28,10 +29,13 @@ class Set(torch.nn.Module):
     def element_level_attr_dict(self):
         return {k: v for k, v in self.__dict__.items() if self.is_element_level_attr(v) and k != "edges"}
 
-    def init_param(self, name: str, dist: torch.distributions.Distribution, shape=None):
+    def init_param(self, name: str, dist: torch.distributions.Distribution, shape=None, requires_grad=True):
         if shape is None:
             shape = (1, len(self), 1)
-        self.__setattr__(name, dist.sample(shape))
+
+        param = torch.nn.Parameter(dist.sample(shape), requires_grad=requires_grad)
+
+        self.__setattr__(name, param)
 
     def __len__(self):
         raise NotImplementedError
@@ -68,7 +72,8 @@ class NodeSet(Set):
             attribute_dict: Dict of node attributes.
         """
         super().__init__()
-        self._super_cell = super_cell
+        # The _super_cell attribute is a list to avoid that the supercell object gets registered as a child module
+        self._super_cell = [super_cell]
         self.idx_low = idx_low
         self.idx_high = idx_high
 
@@ -80,37 +85,37 @@ class NodeSet(Set):
         """
         (`torch.Tensor`) State of the nodes included in this NodeSet.
         """
-        return self._super_cell.state[:, self.idx_low : self.idx_high]
+        return self._super_cell[0].state[:, self.idx_low : self.idx_high]
 
     @state.setter
     def state(self, state: Union[torch.Tensor, float]):
         if isinstance(state, torch.Tensor):
             assert state.shape == self.state.shape
-        self._super_cell.state[:, self.idx_low : self.idx_high] = state
+        self._super_cell[0].state[:, self.idx_low : self.idx_high] = state
 
     @property
     def decay_rates(self) -> torch.Tensor:
         """
         (`torch.Tensor`) Decay rates of the nodes included in this NodeSet.
         """
-        return self._super_cell.decay_rates[:, self.idx_low : self.idx_high]
+        return self._super_cell[0].decay_rates[:, self.idx_low : self.idx_high]
 
     @decay_rates.setter
     def decay_rates(self, decay_rates: torch.Tensor):
         assert decay_rates.shape == self.decay_rates.shape
-        self._super_cell.decay_rates[:, self.idx_low : self.idx_high] = decay_rates
+        self._super_cell[0].decay_rates[:, self.idx_low : self.idx_high] = decay_rates
 
     @property
     def production_rates(self) -> torch.Tensor:
         """
         (`torch.Tensor`) Production rates of the nodes included in this NodeSet.
         """
-        return self._super_cell.production_rates[:, self.idx_low : self.idx_high]
+        return self._super_cell[0].production_rates[:, self.idx_low : self.idx_high]
 
     @production_rates.setter
     def production_rates(self, production_rates: torch.Tensor):
         assert production_rates.shape == self.production_rates.shape
-        self._super_cell.production_rates[
+        self._super_cell[0].production_rates[
             :, self.idx_low : self.idx_high
         ] = production_rates
 
@@ -268,6 +273,22 @@ class EdgeSet(Set):
                 interest.
         """
         return self.edges[:, 1] == node_idx
+
+    def init_edge_conv(self, name, out_channels):
+        self.__setattr__(name, SimpleConv())
+
+        self.init_param(name=name + "_weights",
+                        dist=torch.distributions.Normal(0, 0.01),
+                        shape=(1, len(self), out_channels))
+
+    def conv(self, x, name, tgt_nodeset_len=None):
+        conv = self.__getattr__(name)
+        weights = self.__getattr__(name + "_weights")
+
+        if tgt_nodeset_len is None:
+            tgt_nodeset_len = x.shape[1]
+
+        return conv(x=x, edge_index=self.edges.T, edge_weight=weights, tgt_nodeset_len=tgt_nodeset_len)
 
     def __len__(self):
         return len(self.edges)
