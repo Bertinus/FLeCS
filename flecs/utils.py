@@ -16,7 +16,7 @@ def get_project_root() -> Path:
         str: Path to the root of the project.
 
     """
-    return Path(__file__).parent.parent.parent
+    return Path(__file__).parent.parent
 
 
 def set_seed(k: int):
@@ -56,6 +56,7 @@ def plot_trajectory(
         RuntimeWarning: If the trajectory contains more than one cell. Only the trajectory of the first cell is plotted.
 
     """
+    trajectory = trajectory.detach()
     if len(trajectory.shape) == 3:
         trajectory = trajectory[:, None, :, :]
     assert len(trajectory.shape) == 4

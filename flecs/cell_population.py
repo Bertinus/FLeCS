@@ -7,6 +7,7 @@ from flecs.data.interaction_data import InteractionData, SetData, EdgeType
 from torch.distributions.normal import Normal
 import flecs.decay as dc
 import networkx as nx
+import numpy as np
 from flecs.production import SimpleConv
 import torch
 
@@ -77,6 +78,11 @@ class CellPopulation(ABC, torch.nn.Module):
     def state(self):
         return self._state
 
+    @state.setter
+    def state(self, value):
+        assert value.shape == self._state.shape
+        self._state = value
+
     def sample_from_state_prior_dist(self, shape=None) -> torch.Tensor:
         """
         Method which samples from the prior distribution of the state of the cell population.
@@ -118,16 +124,31 @@ class CellPopulation(ABC, torch.nn.Module):
             assert isinstance(value, sets.EdgeSet)
             assert key not in self._edge_set_dict
             self._edge_set_dict[key] = value
+            self._modules[str(key)] = value
         else:
             assert isinstance(value, sets.NodeSet)
             assert key not in self._node_set_dict
             self._node_set_dict[key] = value
+            self._modules[key] = value
 
     def __delitem__(self, key: Union[str, Tuple[str, str, str]]):
         if type(key) is tuple:
             del self._edge_set_dict[key]
+            del self._modules[str(key)]
         else:
             self._delete_node_set(key)
+            del self._modules[key]
+
+    def to(self, device):
+        new_self = super(CellPopulation, self).to(device)
+        new_self.state = self.state.to(device)
+        new_self.production_rates = self.production_rates.to(device)
+        new_self.decay_rates = self.decay_rates.to(device)
+
+        for e_type in self.edge_types:
+            new_self[e_type].edges = self[e_type].edges.to(device)
+
+        return new_self
 
     @property
     def n_cells(self) -> int:
@@ -178,10 +199,10 @@ class CellPopulation(ABC, torch.nn.Module):
         Returns:
             time derivatives of all the tracked properties of the Cell Population.
         """
-        self._state = state
+        self.state = state
         return self.get_production_rates() - self.get_decay_rates()
 
-    def _get_node_set(self, n_type_data: SetData) -> sets.NodeSet:
+    def _create_node_set(self, n_type_data: SetData) -> sets.NodeSet:
         """
         Given node type data Dict[AttributeName, AttributeList], returns a `NodeSet` with the associated attributes.
         """
@@ -191,7 +212,7 @@ class CellPopulation(ABC, torch.nn.Module):
 
         return sets.NodeSet(self, idx_low, idx_high, attribute_dict=n_type_data)
 
-    def _get_edge_set(self, e_type: EdgeType, e_type_data: SetData) -> sets.EdgeSet:
+    def _create_edge_set(self, e_type: EdgeType, e_type_data: SetData) -> sets.EdgeSet:
         """
         Given edge type data Dict[AttributeName, AttributeList], returns an `EdgeSet` with the associated attributes.
         """
@@ -206,7 +227,7 @@ class CellPopulation(ABC, torch.nn.Module):
     def initialize_from_interaction_graph(
         self, interaction_graph: InteractionData
     ) -> None:
-        """Initalizaes NodeSet and EdgeSets from an InteractionData object.
+        """Initializes NodeSet and EdgeSets from an InteractionData object.
 
         Args:
             interaction_graph: Interaction graph from which `NodeSet` and `EdgeSet` objects should be initialized.
@@ -215,17 +236,14 @@ class CellPopulation(ABC, torch.nn.Module):
         edge_data_dict = interaction_graph.get_formatted_edge_data()
 
         for n_type, n_type_data in node_data_dict.items():
-            self[n_type] = self._get_node_set(n_type_data)
+            self[n_type] = self._create_node_set(n_type_data)
 
         for e_type, e_type_data in edge_data_dict.items():
-            self[e_type] = self._get_edge_set(e_type, e_type_data)
+            self[e_type] = self._create_edge_set(e_type, e_type_data)
 
     def set_production_rates_to_zero(self) -> None:
         """Sets all production rates for all nodes to zero."""
-        for n_type in self.node_types:
-            self[n_type].production_rates = torch.zeros(
-                self[n_type].production_rates.shape
-            )
+        self.production_rates = torch.zeros(self.production_rates.shape)
 
     def _extend_state(self, n_added_nodes: int) -> None:
         """Appends a number of nodes initialized to the state of the cell population.
@@ -315,15 +333,6 @@ class CellPopulation(ABC, torch.nn.Module):
             if self[other_n_type].idx_low >= node_set_to_be_del.idx_high:
                 self[other_n_type].idx_low -= len(node_set_to_be_del)
                 self[other_n_type].idx_high -= len(node_set_to_be_del)
-
-    def parameters(self, recurse: bool = True):
-        """Yields all cell population parameters."""
-        for k, n_set in self._node_set_dict.items():
-            yield from n_set.parameters(recurse=recurse)
-        for k, e_set in self._edge_set_dict.items():
-            yield from e_set.parameters(recurse=recurse)
-        for name, param in self.named_parameters(recurse=recurse):
-            yield param
 
     def get_interaction_data(self):
         g = nx.DiGraph()
@@ -581,6 +590,81 @@ class Fantom5CovidCellPop(CellPopulation):
             self[n_type].decay_rates = dc.exponential_decay(
                 self, n_type, alpha=self[n_type].alpha
             )
+
+
+class GRNCellPop(CellPopulation):
+    def __init__(self, adata, batch_size, n_latent_var, use_2nd_order_interactions=False):
+        adj_mat = adata.varp["grn_adj_mat"]
+        self.n_genes = adj_mat.shape[0]
+        self.n_latent_var = n_latent_var
+        self.ko_gene = None
+
+        if use_2nd_order_interactions:
+            adj_mat = adj_mat.dot(adj_mat).astype(bool).astype(int)
+
+        # Add latent variables
+        adj_mat = self._add_latent_variables_to_adj_mat(adj_mat)
+
+        # Create graph
+        g = self._init_graph(adj_mat, var_names=list(adata.var.index))
+
+        super().__init__(g, n_cells=batch_size, per_node_state_dim=1, scale_factor_state_prior=1.)
+
+        self["gene", "regulates", "gene"].init_edge_conv(name="simple_conv", out_channels=1)
+        self["gene"].init_param(name="bias", dist=torch.distributions.Normal(0, 0.01))
+        self["gene"].init_param(name="alpha", dist=torch.distributions.Gamma(2, 10))
+
+        self.relu = torch.nn.ReLU()
+        self.activation = torch.nn.Sigmoid()
+
+    def compute_production_rates(self):
+        if self.ko_gene is not None:
+            regulators_state = self.state.clone()
+            regulators_state[:, self.ko_gene] = 0.
+        else:
+            regulators_state = self.state
+
+        gene_regulation_embeddings = self["gene", "regulates", "gene"].conv(x=regulators_state, name="simple_conv")
+        self.production_rates = self.activation(gene_regulation_embeddings + self["gene"].bias)
+
+    def compute_decay_rates(self):
+        self.decay_rates = self["gene"].alpha * self.state
+        self.decay_rates = self.decay_rates
+
+    def _add_latent_variables_to_adj_mat(self, adj_mat):
+        full_adj_mat = np.ones((self.n_genes + self.n_latent_var, self.n_genes + self.n_latent_var))
+        full_adj_mat[:self.n_genes, :self.n_genes] = adj_mat
+
+        return full_adj_mat
+
+    def _init_graph(self, adj_mat, var_names):
+        assert len(var_names) == self.n_genes
+
+        g = nx.DiGraph(nx.from_numpy_matrix(adj_mat))
+        nx.set_node_attributes(g,
+                               {
+                                   **{k: v for k, v in enumerate(var_names)},
+                                   **{self.n_genes + i: "latent_" + str(i) for i in range(self.n_latent_var)}
+                               },
+                               name="name")
+
+        return g
+
+    def set_visible_state(self, visible_state):
+        """
+
+        Args:
+            visible_state:
+
+        Returns:
+
+        """
+        if len(visible_state.shape) == 2:
+            # Add a third dimension if necessary
+            visible_state = visible_state[:, :, None]
+
+        latent_state = torch.zeros((self.state.shape[0], self.n_latent_var, self.state.shape[2])).to(self.state.device)
+        self.state = torch.cat((visible_state, latent_state), dim=1)
 
 
 if __name__ == "__main__":

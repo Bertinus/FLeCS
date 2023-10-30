@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
     # apply_bernoulli_mutation(cell_pop["gene"], "alpha", p=0.5, n_cells=3)
 
-    # apply_gaussian_mutation(cell_pop['gene', 'activation', 'gene'], "weights", sigma=1., n_cells=3)
+    # apply_gaussian_mutation(cell_pop['gene', 'activation', 'gene'], "weights", sigma=10., n_cells=3)
 
     # Simulate trajectory
     cell_traj = simulate_deterministic_trajectory(cell_pop, torch.linspace(0, 1, 100))

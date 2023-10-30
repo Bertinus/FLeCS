@@ -20,19 +20,19 @@ def simulate_deterministic_trajectory_euler_steps(
         time_range (1D torch.Tensor): Time points at which the cells state should be evaluated.
 
     Returns:
-        torch.Tensor: Trajectory of shape (n_time_points, n_cells, n_genes, *state_dim)
+        torch.Tensor: Trajectory of shape (n_cells, n_time_points, n_genes, *state_dim)
     """
 
     # Store cell state at each time step
-    trajectory = [copy.deepcopy(cells.state[None, :, :])]
+    trajectory = [copy.deepcopy(cells.state[:, None])]
 
     with torch.no_grad():
         for i in range(1, len(time_range)):
             tau = time_range[i] - time_range[i - 1]
             cells.state += tau * cells.get_derivatives(cells.state)
-            trajectory.append(copy.deepcopy(cells.state[None, :, :]))
+            trajectory.append(copy.deepcopy(cells.state[:, None]))
 
-    return torch.cat(trajectory)
+    return torch.cat(trajectory, dim=1)
 
 
 def simulate_deterministic_trajectory(
@@ -47,7 +47,7 @@ def simulate_deterministic_trajectory(
         method (str): argument for the solver.
 
     Returns:
-        torch.Tensor: Trajectory of shape (n_time_points, n_cells, n_genes, *state_dim)
+        torch.Tensor: Trajectory of shape (n_cells, n_time_points, n_genes, *state_dim)
     """
     from torchdiffeq import odeint
 
@@ -61,7 +61,7 @@ def simulate_deterministic_trajectory(
     # Simulate trajectory
     trajectory = odeint(derivatives_for_solver, cells.state, time_range, method=method)
 
-    return trajectory
+    return trajectory.permute(1, 0, 2, 3)
 
 
 def simulate_stochastic_trajectory(cells: CellPopulation, time_range: torch.Tensor):
@@ -82,7 +82,7 @@ def simulate_stochastic_trajectory(cells: CellPopulation, time_range: torch.Tens
         torch.Tensor: Trajectory of shape (n_time_points, n_cells, n_genes, *state_dim)
     """
     # Store cell state at each time step
-    trajectory = [copy.deepcopy(cells.state[None, :, :])]
+    trajectory = [copy.deepcopy(cells.state[:, None])]
 
     with torch.no_grad():
         for i in range(1, len(time_range)):
@@ -97,6 +97,6 @@ def simulate_stochastic_trajectory(cells: CellPopulation, time_range: torch.Tens
             # Make sure state is positive
             cells.state = F.relu(cells.state)
 
-            trajectory.append(copy.deepcopy(cells.state[None, :, :]))
+            trajectory.append(copy.deepcopy(cells.state[:, None]))
 
-    return torch.cat(trajectory)
+    return torch.cat(trajectory, dim=1)

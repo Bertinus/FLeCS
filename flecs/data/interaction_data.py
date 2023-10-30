@@ -273,11 +273,25 @@ class InteractionData(nx.DiGraph):
             and set to range(0, n_nodes).
 
         """
-        # Make sure that "type" is a node/edge attribute of all nodes/edges
-        assert len(nx.get_node_attributes(g, "type")) == g.number_of_nodes()
-        assert len(nx.get_edge_attributes(g, "type")) == g.number_of_edges()
+        # If the "type" attribute does not exist, it defaults to "gene"/"regulates" for nodes/edges
+        if len(nx.get_node_attributes(g, "type")) == 0:
+            nx.set_node_attributes(g, "gene", name="type")
+        else:
+            # Make sure that "type" is a node attribute of all nodes
+            assert len(nx.get_node_attributes(g, "type")) == g.number_of_nodes()
+        if len(nx.get_edge_attributes(g, "type")) == 0:
+            nx.set_edge_attributes(g, "regulates", name="type")
+        else:
+            # Make sure that "type" is an edge attribute of all edges
+            assert len(nx.get_edge_attributes(g, "type")) == g.number_of_edges()
 
         g = nx.convert_node_labels_to_integers(g)
+
+        # If there is only one node type, no need to reorder the graph
+        if len(np.unique(nx.get_node_attributes(g, "type"))) == 1:
+            return g
+
+        # Reorder the graph
         ordered_nodes = np.argsort(list(nx.get_node_attributes(g, "type").values()))
 
         g_sorted = nx.DiGraph()
