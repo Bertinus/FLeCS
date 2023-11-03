@@ -40,6 +40,33 @@ def train_epoch(model, train_dataloader, optimizer, path_length, loss, max_n_bat
     print("train loss", np.mean(all_train_losses))
 
 
+def eval_epoch(model, eval_dataloader, path_length, loss, max_n_batch=None):
+    all_eval_losses = []
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    cpt = 0
+
+    with torch.no_grad():
+        for expr_traj in eval_dataloader:
+
+            expr_traj = expr_traj.to(device)
+
+            # Set cell state to the first cell in the trajectory
+            model.set_visible_state(expr_traj[:, 0])
+
+            # Compute dynamics
+            traj = simulate_deterministic_trajectory(model, torch.linspace(0, path_length-1, path_length).to(device))
+            traj = traj[:, :, :model.n_genes, 0]
+
+            batch_loss = loss(traj, expr_traj)
+            all_eval_losses.append(batch_loss.item())
+
+            cpt += 1
+            if max_n_batch is not None and cpt >= max_n_batch:
+                break
+
+    print("eval loss", np.mean(all_eval_losses))
+
+
 def get_cell_indices(adata):
     # Get the indices of cells for the different populations
     cmp_cells = list(adata.obs[adata.obs["Batch_desc"] == 'CMP Flt3+ Csf1r+'].index.astype("int"))

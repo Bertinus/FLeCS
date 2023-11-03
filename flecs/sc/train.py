@@ -5,7 +5,7 @@ import torch
 from flecs.utils import set_seed, get_project_root
 from flecs.sc.dataset import Paul15Dataset
 from flecs.cell_population import GRNCellPop
-from flecs.sc.utils import train_epoch
+from flecs.sc.utils import train_epoch, eval_epoch
 
 ########################################################################################################################
 # Params
@@ -69,15 +69,20 @@ loss = torch.nn.MSELoss()
 # Train
 ########################################################################################################################
 
-for epoch in range(100):
+for epoch in range(200):
     print("New epoch", epoch)
 
+    if epoch == 100:
+        optimizer = torch.optim.Adam(mycellpop.parameters(), lr=learning_rate/10)
+
     train_epoch(mycellpop, train_dataloader_late, optimizer, path_length=10, loss=loss, max_n_batch=1)
-    train_epoch(mycellpop, train_dataloader_early, optimizer, path_length=3, loss=loss, max_n_batch=3)
+    eval_epoch(mycellpop, valid_dataloader_late, path_length=10, loss=loss, max_n_batch=3)
+    train_epoch(mycellpop, train_dataloader_early, optimizer, path_length=3, loss=loss, max_n_batch=10)
+    eval_epoch(mycellpop, valid_dataloader_early, path_length=3, loss=loss, max_n_batch=3)
 
 torch.save({
     **mycellpop["gene"].state_dict(),
     **mycellpop["gene", "regulates", "gene"].state_dict()
 },
-    "trained_mycellpop_nov_2_6.pt"
+    "trained_mycellpop_nov_3_20.pt"
 )
