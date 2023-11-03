@@ -1,6 +1,9 @@
 import numpy as np
 import torch
 from flecs.cell_population import CellPopulation
+from flecs.utils import get_project_root
+import scanpy as sc
+import os
 import networkx as nx
 
 
@@ -9,7 +12,9 @@ class GRNCellPop(CellPopulation):
         adj_mat = adata.varp["grn_adj_mat"]
         self.n_genes = adj_mat.shape[0]
         self.n_latent_var = n_latent_var
-        self.ko_gene = None
+
+        self.t = 1.  # Trick for training. Default behaviour when t = 1.
+        self.ko_gene_embedding = None
 
         if use_2nd_order_interactions:
             adj_mat = adj_mat.dot(adj_mat).astype(bool).astype(int)
@@ -29,19 +34,45 @@ class GRNCellPop(CellPopulation):
         self.relu = torch.nn.ReLU()
         self.activation = torch.nn.Sigmoid()
 
-    def compute_production_rates(self):
-        if self.ko_gene is not None:
-            regulators_state = self.state.clone()
-            regulators_state[:, self.ko_gene] = 0.
-        else:
-            regulators_state = self.state
+        self.interventional_model, self.perturbseq = self.initialize_interventional_model()
 
-        gene_regulation_embeddings = self["gene", "regulates", "gene"].conv(x=regulators_state, name="simple_conv")
+    def intervene(self, gene_name=None):
+        if gene_name is None:
+            self.ko_gene_embedding = None
+            return
+
+        pert_indices = [x for x in list(self.perturbseq.obs.index) if gene_name.upper() in x]
+        assert len(pert_indices) == 1
+
+        pert_index = pert_indices[0]
+        self.ko_gene_embedding = torch.tensor(self.perturbseq[pert_index].obsm["X_pca"].copy()[0]).to(self.state.device)
+
+    def initialize_interventional_model(self):
+        # Initialize interventional model
+        perturbseq = sc.read_h5ad(
+            os.path.join(get_project_root(), "datasets", "PerturbSeq", "K562_gwps_raw_bulk_01.h5ad"),
+            backed='r'
+        )
+        sc.tl.pca(perturbseq, svd_solver="arpack", n_comps=128)
+
+        interventional_model = torch.nn.Sequential(torch.nn.Linear(128 + self.n_nodes, self.n_nodes))
+
+        return interventional_model, perturbseq
+
+    def compute_production_rates(self):
+        gene_regulation_embeddings = self["gene", "regulates", "gene"].conv(x=self.state, name="simple_conv")
+
+        if self.ko_gene_embedding is not None:
+            interv_input = torch.cat((gene_regulation_embeddings, self.ko_gene_embedding[None, :, None]\
+                                      * torch.ones((self.state.shape[0], 1, 1)).to(self.state.device)), dim=1)
+            interv_effect = self.interventional_model(interv_input[:, :, 0])[:, :, None]
+
+            gene_regulation_embeddings = self.t * gene_regulation_embeddings + interv_effect
+
         self.production_rates = self.activation(gene_regulation_embeddings + self["gene"].bias)
 
     def compute_decay_rates(self):
         self.decay_rates = self["gene"].alpha * self.state
-        self.decay_rates = self.decay_rates
 
     def _add_latent_variables_to_adj_mat(self, adj_mat):
         full_adj_mat = np.ones((self.n_genes + self.n_latent_var, self.n_genes + self.n_latent_var))
