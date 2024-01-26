@@ -34,9 +34,16 @@ pip install git+https://github.com/bertinus/flecs.git@main
 
 ### Conda
 
-To install the conda environment, please run
+To install the conda environment on CPU, please run
 ```
-conda env create -f environment.yml
+conda env create -f environment_gpu.yml
+conda activate flecs
+pip install -e .
+```
+
+To install the conda environment on GPU, please run
+```
+conda env create -f environment_cpu.yml
 conda activate flecs
 pip install -e .
 ```
