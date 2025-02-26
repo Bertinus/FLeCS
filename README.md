@@ -1,22 +1,27 @@
 # FLeCS
 
-Flexible and Learnable Cell Simulator
+**F**unctional and **Le**arnable **C**ell dynamic**S**
 
-[![Tests][badge-tests]][link-tests]
-[![Documentation][badge-docs]][link-docs]
+<img src="docs/flecs_logo.png" alt="flecs_logo" width="300"/>
 
+## Overview
 
-## Documentation
+<img src="docs/figure1.png" alt="figure1" width="800"/>
 
-Please refer to the [documentation][link-docs].
+We introduce FLeCS, a functional and learnable model of cell dynamics that incorporates gene network structure into 
+coupled differential equations and: 
+- accurately infers cell dynamics at scale
+- provides improved functional insights into transcriptional mechanisms
+- simulates single-cell trajectories
 
+For a quick overview, please refer to `notebooks/Overview.ipynb` and `notebooks/SingleCellExample.ipynb`. 
 
 ## Installation
 ### Pip
 You need to have Python 3.8 or newer installed on your system. If you don't have
 Python installed, we recommend installing [Mambaforge](https://github.com/conda-forge/miniforge#mambaforge).
 
-There are several alternative options to install flecst:
+There are several alternative options to install flecs:
 
 <!--
 1) Install the latest release of `flecs` from `PyPI <https://pypi.org/project/flecs/>`_:
@@ -34,52 +39,23 @@ pip install git+https://github.com/bertinus/flecs.git@main
 
 ### Conda
 
-To install the conda environment on CPU, please run
+To install the conda environment on GPU, please run
 ```
 conda env create -f environment_gpu.yml
 conda activate flecs
 pip install -e .
 ```
 
-To install the conda environment on GPU, please run
+To install the conda environment on CPU, please run
 ```
 conda env create -f environment_cpu.yml
 conda activate flecs
 pip install -e .
 ```
 
+## Documentation
 
-## Information to edit the documentation
-
-We use mkdocs. More information is available on [how to get started](https://www.mkdocs.org/getting-started/)
-and how to [deploy the documentation](https://www.mkdocs.org/user-guide/deploying-your-docs/).
-
-The most important commands are:
-- ```mkdocs serve```: starts a local server to preview your documentation.
-- ```mkdocs build```
-- ```mkdocs gh-deploy```: builds the docs, then commits and pushes them to the *gh-pages* branch of the repository.
+Please refer to the [documentation][link-docs].
 
 
-## Release notes
-
-See the [changelog][changelog].
-
-
-## Contact
-
-For questions and help requests, you can reach out in the [scverse discourse][scverse-discourse].
-If you found a bug, please use the [issue tracker][issue-tracker].
-
-
-## Citation
-
-> t.b.a
-
-
-[badge-docs]: https://img.shields.io/readthedocs/flecs
-[badge-tests]: https://img.shields.io/github/actions/workflow/status/bertinus/flecs/test.yaml?branch=main
-[changelog]: https://flecst.readthedocs.io/latest/changelog.html
-[issue-tracker]: https://github.com/bertinus/flecs/issues
 [link-docs]: https://bertinus.github.io/FLeCS/
-[link-tests]: flecs/actions/workflows/test.yml
-[scverse-discourse]: https://discourse.scverse.org/
