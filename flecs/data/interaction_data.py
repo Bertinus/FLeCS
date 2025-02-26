@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import torch
+import pandas as pd
 from typing import List, Dict, Union, Tuple
 
 # Base types
@@ -330,11 +331,22 @@ class InteractionData(nx.DiGraph):
             + str(self.unique_node_types)
             + ".\n"
         )
+
+        string += (
+            str(pd.value_counts(list(nx.get_node_attributes(self, "type").values()))).split("\ndtype")[0]
+            + "\n"
+        )
+
         string += (
             str(len(self.unique_edge_types))
             + " different types of edges: "
             + str(self.unique_edge_types)
             + ".\n"
+        )
+
+        string += (
+            str(pd.value_counts(list(nx.get_edge_attributes(self, "type").values()))).split("\ndtype")[0]
+            + "\n"
         )
 
         return string

@@ -285,6 +285,16 @@ def main():
         )
     )
 
+    for f in available_fantom5_tissue_type_files():
+        print(f)
+        if f.startswith("03"):
+            print(
+                f,
+                load_interaction_data(
+                    "fantom5", realnet_tissue_type_file=f
+                ).__repr__()
+            )
+
 
 if __name__ == "__main__":
     main()

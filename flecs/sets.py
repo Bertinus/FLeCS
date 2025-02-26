@@ -27,7 +27,9 @@ class Set(torch.nn.Module):
 
     @property
     def element_level_attr_dict(self):
-        return {k: v for k, v in self.__dict__.items() if self.is_element_level_attr(v) and k != "edges"}
+        non_param_dict = {k: v for k, v in self.__dict__.items() if self.is_element_level_attr(v) and k != "edges"}
+        param_dict = {k: v for k, v in self.__dict__['_parameters'].items()}
+        return {**non_param_dict, **param_dict}
 
     def init_param(self, name: str, dist: torch.distributions.Distribution, shape=None, requires_grad=True):
         if shape is None:
@@ -224,7 +226,11 @@ class EdgeSet(Set):
         to_be_kept = torch.logical_not(indices)
 
         for attr_name, attr_value in self.element_level_attr_dict.items():
-            self.__setattr__(attr_name, attr_value[:, to_be_kept])
+            if isinstance(attr_value, torch.nn.parameter.Parameter):
+                new_attr_value = torch.nn.Parameter(attr_value[:, to_be_kept])
+            else:
+                new_attr_value = attr_value[:, to_be_kept]
+            self.__setattr__(attr_name, new_attr_value)
 
         self.edges = self.edges[to_be_kept]
 

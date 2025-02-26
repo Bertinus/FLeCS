@@ -1,15 +1,7 @@
 <img src="flecs_logo.png" alt="flecs_logo" width="600"/>
 
-# Flexible and Learnable Cell Simulations
+# Functional and Learnable Cell Dynamics
 
-
-## Overview
-
-TODO
-
-## Installation
-
-TODO
 
 ## Quick usage
 
