@@ -4,6 +4,8 @@
 
 <img src="docs/flecs_logo.png" alt="flecs_logo" width="300"/>
 
+Repository for the preprint: [A scalable gene network model of regulatory dynamics in single cells](https://arxiv.org/abs/2503.20027).
+
 ## Overview
 
 <img src="docs/figure1.png" alt="figure1" width="800"/>
@@ -50,3 +52,19 @@ Please refer to the [documentation][link-docs].
 
 
 [link-docs]: https://bertinus.github.io/FLeCS/
+
+## Citation
+
+If you use FLeCS in your research, please cite the following preprint:
+
+```
+@misc{bertin2025scalablegenenetworkmodel,
+      title={A scalable gene network model of regulatory dynamics in single cells}, 
+      author={Paul Bertin and Joseph D. Viviano and Alejandro Tejada-Lapuerta and Weixu Wang and Stefan Bauer and Fabian J. Theis and Yoshua Bengio},
+      year={2025},
+      eprint={2503.20027},
+      archivePrefix={arXiv},
+      primaryClass={q-bio.MN},
+      url={https://arxiv.org/abs/2503.20027}, 
+}
+```
