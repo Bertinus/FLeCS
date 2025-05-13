@@ -5,11 +5,11 @@ from flecs.utils import get_project_root
 import scanpy as sc
 import os
 import networkx as nx
-from flecs.production import SimpleConv
+import warnings
 
 
 class GRNCellPop(CellPopulation):
-    def __init__(self, adata, batch_size, n_latent_var, use_2nd_order_interactions=False):
+    def __init__(self, adata, batch_size, n_latent_var, use_2nd_order_interactions=False, init_interv_model=False):
         """
         FLeCS model initialized with a Scanpy adata object that contains the GRN adjacency matrix.
 
@@ -18,10 +18,13 @@ class GRNCellPop(CellPopulation):
             batch_size: Number of cells in training batches.
             n_latent_var: Number of desired latent variables.
             use_2nd_order_interactions: Whether to extended adjacency matrix with second order interactions
+            init_interv_model: whether to initialize an interventional model based on embeddings derived
+                from Perturbseq data
         """
         adj_mat = adata.varp["grn_adj_mat"]
         self.n_genes = adj_mat.shape[0]
         self.n_latent_var = n_latent_var
+        self.init_interv_model = init_interv_model
 
         self.t = 1.  # Trick for training. Default behaviour when t = 1.
         self.ko_gene_embedding = None
@@ -44,11 +47,16 @@ class GRNCellPop(CellPopulation):
         self.relu = torch.nn.ReLU()
         self.activation = torch.nn.Sigmoid()
 
-        self.interventional_model, self.perturbseq = self.initialize_interventional_model()
+        if self.init_interv_model:
+            self.interventional_model, self.perturbseq = self.initialize_interventional_model()
 
     def intervene(self, gene_name=None):
         if gene_name is None:
             self.ko_gene_embedding = None
+            return
+
+        if not self.init_interv_model:
+            warnings.warn("No intervention performed, interventional model has not been initialized", RuntimeWarning)
             return
 
         pert_indices = [x for x in list(self.perturbseq.obs.index) if gene_name.upper() in x]
@@ -72,7 +80,7 @@ class GRNCellPop(CellPopulation):
     def compute_production_rates(self):
         gene_regulation_embeddings = self["gene", "regulates", "gene"].conv(x=self.state, name="simple_conv")
 
-        if self.ko_gene_embedding is not None:
+        if self.init_interv_model and (self.ko_gene_embedding is not None):
             interv_input = torch.cat((gene_regulation_embeddings, self.ko_gene_embedding[None, :, None]\
                                       * torch.ones((self.state.shape[0], 1, 1)).to(self.state.device)), dim=1)
             interv_effect = self.interventional_model(interv_input[:, :, 0])[:, :, None]
@@ -434,7 +442,6 @@ class SciplexGRNCellPop(CellPopulation):
         self._state = torch.cat(q*[self._state] + [self._state[:r]], dim=0)
         self.production_rates = torch.empty(self.state.shape)
         self.decay_rates = torch.empty(self.state.shape)
-
 
     def set_visible_state(self, visible_state):
         """
